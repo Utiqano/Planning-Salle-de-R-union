@@ -321,22 +321,18 @@
             .percentage-circle .value { font-size: 1.8rem; }
         }
     </style>
-    <!-- Load Firebase SDK modularly -->
     <script type="module">
-        // Import Firebase modules
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
         import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js';
         import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
         import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js';
 
-        // Make Firebase available globally for initFirebase
         window.firebase = { initializeApp, getAnalytics, getDatabase, ref, set, onValue, getMessaging, getToken, onMessage };
     </script>
-    <!-- Fallback for non-module environments -->
     <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
     <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-    <     <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
+    <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
 </head>
 <body>
     <div id="sidebar" class="sidebar">
@@ -517,7 +513,7 @@
             } catch (e) {
                 console.warn('localStorage blocked:', e);
             }
-            showSection('accueil'); // Reset to home section on language change
+            showSection('accueil');
         }
 
         function getLocalStorage(key, defaultValue) {
@@ -550,8 +546,8 @@
             toggleButton.textContent = 'Mode Jour';
         }
 
-        const ADMIN_PASSWORD = 'admin123'; // For Performance section
-        const MESSAGES_PASSWORD = 'wkw123'; // For Messages Reçus
+        const ADMIN_PASSWORD = 'admin123';
+        const MESSAGES_PASSWORD = 'wkw123';
         let isAuthenticatedPerformance = false;
         let isAuthenticatedMessages = false;
 
@@ -609,7 +605,7 @@
                     console.log('Messages section unlocked');
                 } else if (password !== null) {
                     alert('Mot de passe incorrect!');
-                    showSection('accueil'); // Return to home if password is wrong
+                    showSection('accueil');
                 }
             } else {
                 showSection('contactList');
@@ -636,17 +632,14 @@
         });
 
         function showSection(sectionId) {
-            // Hide all sections
             document.querySelectorAll('.section-container').forEach(section => {
                 section.style.display = 'none';
             });
-            // Show the selected section
             const targetSection = document.getElementById(sectionId);
             if (targetSection) {
                 targetSection.style.display = 'block';
                 targetSection.scrollIntoView({ behavior: 'smooth' });
             }
-            // Close any open collapsible sections
             const collapsibleSections = document.querySelectorAll('.collapse.show');
             collapsibleSections.forEach(section => {
                 new bootstrap.Collapse(section).hide();
@@ -672,6 +665,7 @@
             });
         });
 
+        // Enhanced initFirebase function
         function initFirebase() {
             const firebaseConfig = {
                 apiKey: "AIzaSyBRkQC9shy1T0wh3KGCLTT3d3OSsg-FnFI",
@@ -684,43 +678,88 @@
                 databaseURL: "https://department-bf249-default-rtdb.firebaseio.com/"
             };
 
-            try {
-                const app = firebase.initializeApp(firebaseConfig);
-                const analytics = firebase.getAnalytics(app);
-                const database = firebase.getDatabase(app);
-                const messaging = firebase.getMessaging(app); // Initialize messaging
-                window.database = database;
+            // Check if Firebase is loaded
+            if (typeof firebase === 'undefined' || !firebase.initializeApp) {
+                console.error('Firebase SDK not loaded. Please check your internet connection or script imports.');
+                document.getElementById('messagesContainer').innerHTML = '<p class="text-center text-danger">Erreur: Firebase SDK non chargé. Vérifiez votre connexion internet.</p>';
+                return;
+            }
 
-                // Request permission and get FCM token
-                Notification.requestPermission().then((permission) => {
-                    if (permission === 'granted') {
-                        console.log('Notification permission granted.');
-                        firebase.getToken(messaging, { vapidKey: '4N1hMF3mDP2CZu1EwjF15WFWmT4S6i12htx_9-KTVIU' })
-                            .then((currentToken) => {
-                                if (currentToken) {
-                                    console.log('FCM Token:', currentToken);
-                                    // Optionally send token to your server
-                                    sendTokenToServer(currentToken);
-                                } else {
-                                    console.log('No registration token available.');
-                                }
-                            })
-                            .catch((err) => {
-                                console.error('Error retrieving token:', err);
-                            });
-                    } else {
-                        console.log('Notification permission denied.');
-                    }
-                });
+            let app, database, messaging;
+            try {
+                // Initialize Firebase app
+                app = firebase.initializeApp(firebaseConfig);
+                console.log('Firebase app initialized successfully.');
+            } catch (error) {
+                console.error('Failed to initialize Firebase app:', error);
+                document.getElementById('messagesContainer').innerHTML = '<p class="text-center text-danger">Erreur: Initialisation de Firebase échouée.</p>';
+                return;
+            }
+
+            // Initialize Analytics
+            try {
+                firebase.getAnalytics(app);
+                console.log('Analytics initialized.');
+            } catch (error) {
+                console.warn('Analytics initialization failed:', error);
+            }
+
+            // Initialize Realtime Database
+            try {
+                database = firebase.getDatabase(app);
+                window.database = database;
+                console.log('Realtime Database initialized.');
+            } catch (error) {
+                console.error('Database initialization failed:', error);
+                document.getElementById('messagesContainer').innerHTML = '<p class="text-center text-danger">Erreur: Base de données non initialisée.</p>';
+                return;
+            }
+
+            // Initialize Cloud Messaging
+            try {
+                messaging = firebase.getMessaging(app);
+                console.log('Cloud Messaging initialized.');
+                
+                // Request notification permission and get token
+                Notification.requestPermission()
+                    .then((permission) => {
+                        if (permission === 'granted') {
+                            console.log('Notification permission granted.');
+                            return firebase.getToken(messaging, { vapidKey: '4N1hMF3mDP2CZu1EwjF15WFWmT4S6i12htx_9-KTVIU' });
+                        } else {
+                            console.log('Notification permission denied.');
+                            throw new Error('Permission denied');
+                        }
+                    })
+                    .then((currentToken) => {
+                        if (currentToken) {
+                            console.log('FCM Token:', currentToken);
+                            sendTokenToServer(currentToken);
+                        } else {
+                            console.log('No registration token available. Ensure service worker is registered.');
+                        }
+                    })
+                    .catch((err) => {
+                        console.error('Error retrieving FCM token:', err);
+                    });
 
                 // Handle foreground messages
                 firebase.onMessage(messaging, (payload) => {
                     console.log('Foreground message received:', payload);
-                    alert(`${payload.notification.title}: ${payload.notification.body}`);
+                    const toast = document.createElement('div');
+                    toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #333; color: #fff; padding: 10px; border-radius: 5px; z-index: 10000;';
+                    toast.textContent = `${payload.notification.title}: ${payload.notification.body}`;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 5000);
                 });
+            } catch (error) {
+                console.error('Messaging initialization failed:', error);
+            }
 
-                // Contact form submission
-                document.getElementById('contactForm').addEventListener('submit', function(e) {
+            // Contact form submission
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     const name = document.getElementById('name').value;
                     const email = document.getElementById('email').value;
@@ -743,20 +782,20 @@
                         alert('Erreur lors de l\'enregistrement: ' + error.message);
                     });
                 });
+            } else {
+                console.warn('Contact form not found.');
+            }
 
-                // Display messages
-                const messagesContainer = document.getElementById('messagesContainer');
+            // Display messages
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (messagesContainer) {
                 const messagesRef = firebase.ref(database, 'contacts');
                 firebase.onValue(messagesRef, (snapshot) => {
-                    console.log('Raw snapshot:', snapshot);
-                    console.log('Snapshot value:', snapshot.val());
                     messagesContainer.innerHTML = '';
                     const messages = snapshot.val();
                     if (messages) {
-                        console.log('Messages found:', messages);
                         Object.keys(messages).forEach((key) => {
                             const msg = messages[key];
-                            console.log('Processing message:', msg);
                             const messageCard = `
                                 <div class="col-md-4 message-card">
                                     <h5>${msg.name || 'N/A'}</h5>
@@ -768,38 +807,25 @@
                             messagesContainer.innerHTML += messageCard;
                         });
                     } else {
-                        console.log('No messages in database');
                         messagesContainer.innerHTML = '<p class="text-center">Aucun message pour le moment.</p>';
                     }
                 }, (error) => {
                     console.error('Error fetching messages:', error);
-                    messagesContainer.innerHTML = '<p class="text-center">Erreur lors du chargement des messages: ' + error.message + '</p>';
+                    messagesContainer.innerHTML = '<p class="text-center text-danger">Erreur lors du chargement des messages.</p>';
                 });
-            } catch (error) {
-                console.error('Firebase initialization failed:', error);
-                document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non initialisé.</p>';
+            } else {
+                console.warn('Messages container not found.');
             }
         }
 
-        // Function to send token to server (optional)
         function sendTokenToServer(token) {
-            // Example: Send token to your backend via fetch
-            fetch('/save-token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: token })
-            }).then(response => console.log('Token saved:', response))
-              .catch(err => console.error('Error saving token:', err));
+            console.log('FCM token to save:', token);
+            // Optional: Implement server-side token storage
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            showSection('accueil'); // Ensure only 'accueil' is visible on load
-            if (typeof firebase !== 'undefined' && firebase.initializeApp) {
-                initFirebase();
-            } else {
-                console.error('Firebase script not loaded');
-                document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non chargé. Veuillez vérifier votre connexion internet.</p>';
-            }
+            showSection('accueil');
+            initFirebase();
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
