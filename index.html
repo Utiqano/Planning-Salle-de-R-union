@@ -665,7 +665,7 @@
             });
         });
 
-        // Enhanced initFirebase function
+        // Enhanced initFirebase function with debugging
         function initFirebase() {
             const firebaseConfig = {
                 apiKey: "AIzaSyBRkQC9shy1T0wh3KGCLTT3d3OSsg-FnFI",
@@ -720,9 +720,10 @@
                 messaging = firebase.getMessaging(app);
                 console.log('Cloud Messaging initialized.');
 
-                // Explicitly register the service worker
+                // Explicitly register the service worker with debugging
                 if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/photo/firebase-messaging-sw.js', { scope: '/photo/' })
+                    console.log('Attempting to register service worker at /firebase-messaging-sw.js with scope /photo/');
+                    navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/photo/' })
                         .then((registration) => {
                             console.log('Service Worker registered with scope:', registration.scope);
 
@@ -751,6 +752,19 @@
                         })
                         .catch((err) => {
                             console.error('Service Worker registration failed:', err);
+                            // Additional debugging: Try fetching the script manually
+                            fetch('/firebase-messaging-sw.js')
+                                .then(response => {
+                                    console.log('Manual fetch of /firebase-messaging-sw.js status:', response.status);
+                                    if (!response.ok) {
+                                        console.error('Manual fetch failed with status:', response.status, response.statusText);
+                                    } else {
+                                        console.log('Manual fetch succeeded, content-type:', response.headers.get('content-type'));
+                                    }
+                                })
+                                .catch(fetchErr => {
+                                    console.error('Manual fetch error:', fetchErr);
+                                });
                         });
                 } else {
                     console.error('Service Workers are not supported in this browser.');
