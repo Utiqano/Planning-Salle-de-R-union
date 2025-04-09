@@ -719,29 +719,42 @@
             try {
                 messaging = firebase.getMessaging(app);
                 console.log('Cloud Messaging initialized.');
-                
-                // Request notification permission and get token
-                Notification.requestPermission()
-                    .then((permission) => {
-                        if (permission === 'granted') {
-                            console.log('Notification permission granted.');
-                            return firebase.getToken(messaging, { vapidKey: '4N1hMF3mDP2CZu1EwjF15WFWmT4S6i12htx_9-KTVIU' });
-                        } else {
-                            console.log('Notification permission denied.');
-                            throw new Error('Permission denied');
-                        }
-                    })
-                    .then((currentToken) => {
-                        if (currentToken) {
-                            console.log('FCM Token:', currentToken);
-                            sendTokenToServer(currentToken);
-                        } else {
-                            console.log('No registration token available. Ensure service worker is registered.');
-                        }
-                    })
-                    .catch((err) => {
-                        console.error('Error retrieving FCM token:', err);
-                    });
+
+                // Explicitly register the service worker
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/photo/firebase-messaging-sw.js', { scope: '/photo/' })
+                        .then((registration) => {
+                            console.log('Service Worker registered with scope:', registration.scope);
+
+                            // Request notification permission and get token
+                            Notification.requestPermission()
+                                .then((permission) => {
+                                    if (permission === 'granted') {
+                                        console.log('Notification permission granted.');
+                                        return firebase.getToken(messaging, { vapidKey: '4N1hMF3mDP2CZu1EwjF15WFWmT4S6i12htx_9-KTVIU', serviceWorkerRegistration: registration });
+                                    } else {
+                                        console.log('Notification permission denied.');
+                                        throw new Error('Permission denied');
+                                    }
+                                })
+                                .then((currentToken) => {
+                                    if (currentToken) {
+                                        console.log('FCM Token:', currentToken);
+                                        sendTokenToServer(currentToken);
+                                    } else {
+                                        console.log('No registration token available. Ensure service worker is registered.');
+                                    }
+                                })
+                                .catch((err) => {
+                                    console.error('Error retrieving FCM token:', err);
+                                });
+                        })
+                        .catch((err) => {
+                            console.error('Service Worker registration failed:', err);
+                        });
+                } else {
+                    console.error('Service Workers are not supported in this browser.');
+                }
 
                 // Handle foreground messages
                 firebase.onMessage(messaging, (payload) => {
