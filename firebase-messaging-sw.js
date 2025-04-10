@@ -12,15 +12,22 @@ const firebaseConfig = {
     databaseURL: "https://department-bf249-default-rtdb.firebaseio.com/"
 };
 
-const app = firebase.initializeApp(firebaseConfig);
-const messaging = firebase.getMessaging(app);
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.getMessaging();
 
-firebase.onBackgroundMessage(messaging, (payload) => {
-    console.log('[firebase-messaging-sw.js] Received background message ', payload);
-    const notificationTitle = payload.notification?.title || 'WKW Notification';
+self.addEventListener('push', (event) => {
+    const payload = event.data.json();
+    const notificationTitle = payload.notification.title;
     const notificationOptions = {
-        body: payload.notification?.body || 'You have a new message!',
-        icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q'
+        body: payload.notification.body,
+        icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q',
+        data: { url: 'https://your-site-url' } // Replace with your site URL
     };
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    event.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const url = event.notification.data.url || 'https://your-site-url'; // Fallback URL
+    event.waitUntil(clients.openWindow(url));
 });
