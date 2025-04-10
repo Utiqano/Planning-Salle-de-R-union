@@ -21,7 +21,7 @@ self.addEventListener('push', (event) => {
     const notificationOptions = {
         body: payload.notification.body,
         icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q',
-        data: { url: 'https://utiqano.github.io/photo/' } // Adjust to your site URL
+        data: { url: 'https://utiqano.github.io/photo/' }
     };
     event.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
 });
