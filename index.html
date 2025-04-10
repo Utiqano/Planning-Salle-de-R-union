@@ -690,6 +690,16 @@
                 window.messaging = messaging;
                 console.log('Firebase initialized successfully');
 
+                // Register service worker for /photo/ scope
+                navigator.serviceWorker.register('/photo/firebase-messaging-sw.js', { scope: '/photo/' })
+                    .then((registration) => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                        messaging.useServiceWorker(registration);
+                    })
+                    .catch((error) => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+
                 document.getElementById('contactForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     const name = document.getElementById('name').value;
@@ -738,7 +748,7 @@
                 document.getElementById('enableNotifications').addEventListener('click', () => {
                     Notification.requestPermission().then(permission => {
                         if (permission === 'granted') {
-                            firebase.getToken(messaging, { vapidKey: "4N1hMF3mDP2CZu1EwjF15WFWmT4S6i12htx_9-KTVIU" })
+                            firebase.getToken(messaging, { vapidKey: "YOUR_VAPID_PUBLIC_KEY" })
                                 .then((token) => {
                                     console.log('FCM Token:', token);
                                     const tokenRef = firebase.ref(database, 'push-tokens/' + token);
