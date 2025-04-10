@@ -738,7 +738,7 @@
                 document.getElementById('enableNotifications').addEventListener('click', () => {
                     Notification.requestPermission().then(permission => {
                         if (permission === 'granted') {
-                            firebase.getToken(messaging, { vapidKey: "YOUR_VAPID_PUBLIC_KEY" })
+                            firebase.getToken(messaging, { vapidKey: "4N1hMF3mDP2CZu1EwjF15WFWmT4S6i12htx_9-KTVIU" })
                                 .then((token) => {
                                     console.log('FCM Token:', token);
                                     const tokenRef = firebase.ref(database, 'push-tokens/' + token);
