@@ -385,7 +385,7 @@
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/finG5RcRS1w">Instruction de nettoyage presse injection</a></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/pE_ptDrpPDM">F83</a></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/BweHTgi-L_Y">Instruction tri sélectif</a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="תיmodal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/PlZpe_P7OU8">Propositions d'amélioration</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/PlZpe_P7OU8">Propositions d'amélioration</a></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/ntKqMhbqTII">Vidéo 5S</a></li>
                             <li><a class="dropdown-item" href="https://wkwgroup-my.sharepoint.com/:x:/r/personal/houssine_trabelsi_wkw-group_com/_layouts/15/Doc.aspx?sourcedoc=%7BE62360FF-0F09-45B3-8656-782A6158348F%7D&file=Planning%205S.xlsx&action=default&mobileredirect=true" target="_blank">Planning 5S</a></li>
                             <li><a class="dropdown-item" href="https://wkwgroup-my.sharepoint.com/:x:/g/personal/houssine_trabelsi_wkw-group_com/ETxX6xG42nFJqQV1-PaMiFIB2aBMLG-Ux7JdHCwLSOYtIA?e=B1xLbs" target="_blank">Planning Gemba</a></li>
@@ -665,6 +665,10 @@
             });
         });
 
+        document.getElementById('videoModal').addEventListener('hidden.bs.modal', () => {
+            document.getElementById('videoPlayer').src = '';
+        });
+
         function initFirebase() {
             const firebaseConfig = {
                 apiKey: "AIzaSyBRkQC9shy1T0wh3KGCLTT3d3OSsg-FnFI",
@@ -732,20 +736,26 @@
                 });
 
                 document.getElementById('enableNotifications').addEventListener('click', () => {
-                    firebase.getToken(messaging, { vapidKey: "YOUR_VAPID_PUBLIC_KEY" })
-                        .then((token) => {
-                            console.log('FCM Token:', token);
-                            const tokenRef = firebase.ref(database, 'push-tokens/' + token);
-                            firebase.set(tokenRef, {
-                                token: token,
-                                timestamp: new Date().toISOString()
-                            });
-                            alert('Notifications activées avec succès!');
-                        })
-                        .catch((error) => {
-                            console.error('Erreur lors de la demande de permission:', error);
-                            alert('Impossible d\'activer les notifications: ' + error.message);
-                        });
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            firebase.getToken(messaging, { vapidKey: "YOUR_VAPID_PUBLIC_KEY" })
+                                .then((token) => {
+                                    console.log('FCM Token:', token);
+                                    const tokenRef = firebase.ref(database, 'push-tokens/' + token);
+                                    firebase.set(tokenRef, {
+                                        token: token,
+                                        timestamp: new Date().toISOString()
+                                    });
+                                    alert('Notifications activées avec succès!');
+                                })
+                                .catch((error) => {
+                                    console.error('Erreur lors de la récupération du token:', error);
+                                    alert('Impossible d\'activer les notifications: ' + error.message);
+                                });
+                        } else {
+                            alert('Permission de notification refusée.');
+                        }
+                    });
                 });
 
                 firebase.onMessage(messaging, (payload) => {
