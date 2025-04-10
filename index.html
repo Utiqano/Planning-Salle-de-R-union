@@ -90,7 +90,7 @@
             box-shadow: 0 0 10px rgba(230, 57, 70, 0.5);
         }
 
-        .navbar .night-mode-toggle, .navbar .language-toggle {
+        .navbar .night-mode-toggle, .navbar .language-toggle, .navbar #enableNotifications {
             background: var(--gradient-bg);
             border: none;
             padding: 0.6rem 1.2rem;
@@ -385,7 +385,7 @@
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/finG5RcRS1w">Instruction de nettoyage presse injection</a></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/pE_ptDrpPDM">F83</a></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/BweHTgi-L_Y">Instruction tri sélectif</a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/PlZpe_P7OU8">Propositions d'amélioration</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="תיmodal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/PlZpe_P7OU8">Propositions d'amélioration</a></li>
                             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/ntKqMhbqTII">Vidéo 5S</a></li>
                             <li><a class="dropdown-item" href="https://wkwgroup-my.sharepoint.com/:x:/r/personal/houssine_trabelsi_wkw-group_com/_layouts/15/Doc.aspx?sourcedoc=%7BE62360FF-0F09-45B3-8656-782A6158348F%7D&file=Planning%205S.xlsx&action=default&mobileredirect=true" target="_blank">Planning 5S</a></li>
                             <li><a class="dropdown-item" href="https://wkwgroup-my.sharepoint.com/:x:/g/personal/houssine_trabelsi_wkw-group_com/ETxX6xG42nFJqQV1-PaMiFIB2aBMLG-Ux7JdHCwLSOYtIA?e=B1xLbs" target="_blank">Planning Gemba</a></li>
@@ -394,6 +394,7 @@
                     <li class="nav-item"><a class="nav-link" href="#contact" id="contactToggle" onclick="showSection('contact'); toggleContact();" data-lang-key="contact">Contact</a></li>
                     <li class="nav-item"><a class="nav-link" href="#contactList" id="messagesToggle" onclick="handleMessagesToggle();" data-lang-key="messages">Messages Reçus</a></li>
                     <li class="nav-item"><button class="nav-link night-mode-toggle" id="nightModeToggle" data-lang-key="nightMode">Mode Nuit</button></li>
+                    <li class="nav-item"><button class="nav-link" id="enableNotifications">Activer Notifications</button></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle language-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Langue</a>
                         <ul class="dropdown-menu" aria-labelledby="languageDropdown">
@@ -602,7 +603,6 @@
                 if (password === MESSAGES_PASSWORD) {
                     isAuthenticatedMessages = true;
                     showSection('contactList');
-                    console.log('Messages section unlocked');
                 } else if (password !== null) {
                     alert('Mot de passe incorrect!');
                     showSection('accueil');
@@ -665,7 +665,6 @@
             });
         });
 
-        // Enhanced initFirebase function with debugging
         function initFirebase() {
             const firebaseConfig = {
                 apiKey: "AIzaSyBRkQC9shy1T0wh3KGCLTT3d3OSsg-FnFI",
@@ -678,115 +677,16 @@
                 databaseURL: "https://department-bf249-default-rtdb.firebaseio.com/"
             };
 
-            // Check if Firebase is loaded
-            if (typeof firebase === 'undefined' || !firebase.initializeApp) {
-                console.error('Firebase SDK not loaded. Please check your internet connection or script imports.');
-                document.getElementById('messagesContainer').innerHTML = '<p class="text-center text-danger">Erreur: Firebase SDK non chargé. Vérifiez votre connexion internet.</p>';
-                return;
-            }
-
-            let app, database, messaging;
             try {
-                // Initialize Firebase app
-                app = firebase.initializeApp(firebaseConfig);
-                console.log('Firebase app initialized successfully.');
-            } catch (error) {
-                console.error('Failed to initialize Firebase app:', error);
-                document.getElementById('messagesContainer').innerHTML = '<p class="text-center text-danger">Erreur: Initialisation de Firebase échouée.</p>';
-                return;
-            }
-
-            // Initialize Analytics
-            try {
-                firebase.getAnalytics(app);
-                console.log('Analytics initialized.');
-            } catch (error) {
-                console.warn('Analytics initialization failed:', error);
-            }
-
-            // Initialize Realtime Database
-            try {
-                database = firebase.getDatabase(app);
+                const app = firebase.initializeApp(firebaseConfig);
+                const analytics = firebase.getAnalytics(app);
+                const database = firebase.getDatabase(app);
+                const messaging = firebase.getMessaging(app);
                 window.database = database;
-                console.log('Realtime Database initialized.');
-            } catch (error) {
-                console.error('Database initialization failed:', error);
-                document.getElementById('messagesContainer').innerHTML = '<p class="text-center text-danger">Erreur: Base de données non initialisée.</p>';
-                return;
-            }
+                window.messaging = messaging;
+                console.log('Firebase initialized successfully');
 
-            // Initialize Cloud Messaging
-            try {
-                messaging = firebase.getMessaging(app);
-                console.log('Cloud Messaging initialized.');
-
-                // Explicitly register the service worker with debugging
-                if ('serviceWorker' in navigator) {
-                    console.log('Attempting to register service worker at /firebase-messaging-sw.js with scope /photo/');
-                    navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/photo/' })
-                        .then((registration) => {
-                            console.log('Service Worker registered with scope:', registration.scope);
-
-                            // Request notification permission and get token
-                            Notification.requestPermission()
-                                .then((permission) => {
-                                    if (permission === 'granted') {
-                                        console.log('Notification permission granted.');
-                                        return firebase.getToken(messaging, { vapidKey: '4N1hMF3mDP2CZu1EwjF15WFWmT4S6i12htx_9-KTVIU', serviceWorkerRegistration: registration });
-                                    } else {
-                                        console.log('Notification permission denied.');
-                                        throw new Error('Permission denied');
-                                    }
-                                })
-                                .then((currentToken) => {
-                                    if (currentToken) {
-                                        console.log('FCM Token:', currentToken);
-                                        sendTokenToServer(currentToken);
-                                    } else {
-                                        console.log('No registration token available. Ensure service worker is registered.');
-                                    }
-                                })
-                                .catch((err) => {
-                                    console.error('Error retrieving FCM token:', err);
-                                });
-                        })
-                        .catch((err) => {
-                            console.error('Service Worker registration failed:', err);
-                            // Additional debugging: Try fetching the script manually
-                            fetch('/firebase-messaging-sw.js')
-                                .then(response => {
-                                    console.log('Manual fetch of /firebase-messaging-sw.js status:', response.status);
-                                    if (!response.ok) {
-                                        console.error('Manual fetch failed with status:', response.status, response.statusText);
-                                    } else {
-                                        console.log('Manual fetch succeeded, content-type:', response.headers.get('content-type'));
-                                    }
-                                })
-                                .catch(fetchErr => {
-                                    console.error('Manual fetch error:', fetchErr);
-                                });
-                        });
-                } else {
-                    console.error('Service Workers are not supported in this browser.');
-                }
-
-                // Handle foreground messages
-                firebase.onMessage(messaging, (payload) => {
-                    console.log('Foreground message received:', payload);
-                    const toast = document.createElement('div');
-                    toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #333; color: #fff; padding: 10px; border-radius: 5px; z-index: 10000;';
-                    toast.textContent = `${payload.notification.title}: ${payload.notification.body}`;
-                    document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 5000);
-                });
-            } catch (error) {
-                console.error('Messaging initialization failed:', error);
-            }
-
-            // Contact form submission
-            const contactForm = document.getElementById('contactForm');
-            if (contactForm) {
-                contactForm.addEventListener('submit', function(e) {
+                document.getElementById('contactForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     const name = document.getElementById('name').value;
                     const email = document.getElementById('email').value;
@@ -798,24 +698,17 @@
                         email: email,
                         message: message,
                         timestamp: new Date().toISOString()
-                    })
-                    .then(() => {
+                    }).then(() => {
                         console.log('Message saved:', { name, email, message });
                         alert('Message enregistré dans Firebase avec succès!');
                         this.reset();
-                    })
-                    .catch((error) => {
+                    }).catch((error) => {
                         console.error('Error saving message:', error);
                         alert('Erreur lors de l\'enregistrement: ' + error.message);
                     });
                 });
-            } else {
-                console.warn('Contact form not found.');
-            }
 
-            // Display messages
-            const messagesContainer = document.getElementById('messagesContainer');
-            if (messagesContainer) {
+                const messagesContainer = document.getElementById('messagesContainer');
                 const messagesRef = firebase.ref(database, 'contacts');
                 firebase.onValue(messagesRef, (snapshot) => {
                     messagesContainer.innerHTML = '';
@@ -836,23 +729,51 @@
                     } else {
                         messagesContainer.innerHTML = '<p class="text-center">Aucun message pour le moment.</p>';
                     }
-                }, (error) => {
-                    console.error('Error fetching messages:', error);
-                    messagesContainer.innerHTML = '<p class="text-center text-danger">Erreur lors du chargement des messages.</p>';
                 });
-            } else {
-                console.warn('Messages container not found.');
-            }
-        }
 
-        function sendTokenToServer(token) {
-            console.log('FCM token to save:', token);
-            // Optional: Implement server-side token storage
+                document.getElementById('enableNotifications').addEventListener('click', () => {
+                    firebase.getToken(messaging, { vapidKey: "YOUR_VAPID_PUBLIC_KEY" })
+                        .then((token) => {
+                            console.log('FCM Token:', token);
+                            const tokenRef = firebase.ref(database, 'push-tokens/' + token);
+                            firebase.set(tokenRef, {
+                                token: token,
+                                timestamp: new Date().toISOString()
+                            });
+                            alert('Notifications activées avec succès!');
+                        })
+                        .catch((error) => {
+                            console.error('Erreur lors de la demande de permission:', error);
+                            alert('Impossible d\'activer les notifications: ' + error.message);
+                        });
+                });
+
+                firebase.onMessage(messaging, (payload) => {
+                    console.log('Message reçu au premier plan:', payload);
+                    const notificationTitle = payload.notification.title;
+                    const notificationOptions = {
+                        body: payload.notification.body,
+                        icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q'
+                    };
+                    navigator.serviceWorker.ready.then((registration) => {
+                        registration.showNotification(notificationTitle, notificationOptions);
+                    });
+                });
+
+            } catch (error) {
+                console.error('Firebase initialization failed:', error);
+                document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non initialisé.</p>';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             showSection('accueil');
-            initFirebase();
+            if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+                initFirebase();
+            } else {
+                console.error('Firebase script not loaded');
+                document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non chargé.</p>';
+            }
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
