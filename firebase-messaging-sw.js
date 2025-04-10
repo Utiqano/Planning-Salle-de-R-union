@@ -59,5 +59,5 @@ try {
     });
 
 } catch (error) {
-    console.error('Service Worker: Failed to initialize Firebase:', error);
+    console.error('Service Worker: Firebase initialization failed:', error);
 }
