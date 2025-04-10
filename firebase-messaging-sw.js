@@ -21,13 +21,13 @@ self.addEventListener('push', (event) => {
     const notificationOptions = {
         body: payload.notification.body,
         icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q',
-        data: { url: 'https://your-site-url' } // Replace with your site URL
+        data: { url: 'https://utiqano.github.io/photo/' } // Adjust to your site URL
     };
     event.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
 });
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    const url = event.notification.data.url || 'https://your-site-url'; // Fallback URL
+    const url = event.notification.data.url || 'https://utiqano.github.io/photo/';
     event.waitUntil(clients.openWindow(url));
 });
