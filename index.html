@@ -673,15 +673,17 @@
             return navigator.serviceWorker.register('/photo/firebase-messaging-sw.js', { scope: '/photo/', updateViaCache: 'none' })
                 .then((registration) => {
                     console.log('Service Worker registered with scope:', registration.scope);
-
-                    // Additional debugging: Check if the Service Worker script was fetched successfully
                     return fetch('/photo/firebase-messaging-sw.js')
                         .then(response => {
                             if (!response.ok) {
-                                throw new Error('Failed to fetch Service Worker script: ' + response.statusText);
+                                throw new Error(`Failed to fetch Service Worker script: ${response.status} ${response.statusText}`);
                             }
                             console.log('Service Worker script fetched successfully');
                             return registration;
+                        })
+                        .catch(fetchError => {
+                            console.error('Fetch error for Service Worker script:', fetchError);
+                            throw fetchError;
                         });
                 })
                 .catch((error) => {
@@ -711,7 +713,6 @@
                 window.messaging = messaging;
                 console.log('Firebase initialized successfully');
 
-                // Register service worker with retry logic
                 let retryCount = 0;
                 const maxRetries = 3;
                 const retryServiceWorkerRegistration = () => {
@@ -719,14 +720,12 @@
                         .then((registration) => {
                             console.log('Service Worker registration successful after', retryCount, 'retries');
 
-                            // Enable notifications button
                             document.getElementById('enableNotifications').addEventListener('click', () => {
                                 Notification.requestPermission().then(permission => {
                                     if (permission === 'granted') {
                                         console.log('Notification permission granted.');
-                                        // Replace with your actual VAPID key from Firebase Console
-                                        const vapidKey = "YOUR_ACTUAL_VAPID_KEY_HERE"; // Replace this with the correct VAPID key from Firebase Console
-                                        if (!vapidKey || vapidKey === "4N1hMF3mDP2CZu1EwjF15WFWmT4S6i12htx_9-KTVIU") {
+                                        const vapidKey = "YOUR_ACTUAL_VAPID_KEY_FROM_FIREBASE_CONSOLE"; // Replace with your VAPID key
+                                        if (!vapidKey || vapidKey === "YOUR_ACTUAL_VAPID_KEY_FROM_FIREBASE_CONSOLE") {
                                             console.error('VAPID key is not set. Please replace the placeholder with the actual VAPID key.');
                                             alert('Erreur: Clé VAPID non configurée. Veuillez remplacer le placeholder dans le code.');
                                             return;
@@ -759,7 +758,6 @@
                                 });
                             });
 
-                            // Handle foreground messages
                             firebase.onMessage(messaging, (payload) => {
                                 try {
                                     console.log('Foreground message received:', payload);
@@ -785,19 +783,20 @@
                             retryCount++;
                             if (retryCount < maxRetries) {
                                 console.log(`Retrying Service Worker registration (${retryCount}/${maxRetries})...`);
-                                setTimeout(retryServiceWorkerRegistration, 2000); // Retry after 2 seconds
+                                setTimeout(retryServiceWorkerRegistration, 2000);
                             } else {
                                 console.error('Service Worker registration failed after', maxRetries, 'retries:', error);
                                 alert('Erreur lors de l\'enregistrement du Service Worker après plusieurs tentatives: ' + error.message);
                                 document.getElementById('enableNotifications').disabled = true;
                                 document.getElementById('enableNotifications').textContent = 'Notifications Indisponibles';
+                                const messagesContainer = document.getElementById('messagesContainer');
+                                messagesContainer.innerHTML += '<p class="text-center text-danger">Les notifications push ne sont pas disponibles en raison d\'une erreur technique.</p>';
                             }
                         });
                 };
 
                 retryServiceWorkerRegistration();
 
-                // Contact form submission
                 document.getElementById('contactForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     const name = document.getElementById('name').value;
@@ -820,7 +819,6 @@
                     });
                 });
 
-                // Display received messages
                 const messagesContainer = document.getElementById('messagesContainer');
                 const messagesRef = firebase.ref(database, 'contacts');
                 firebase.onValue(messagesRef, (snapshot) => {
