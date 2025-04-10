@@ -674,7 +674,7 @@
                 apiKey: "AIzaSyBRkQC9shy1T0wh3KGCLTT3d3OSsg-FnFI",
                 authDomain: "department-bf249.firebaseapp.com",
                 projectId: "department-bf249",
-                storageBucket: "department-bf249.firebasestorage.app",
+                storageBucket: "department-bf249.appspot.com",
                 messagingSenderId: "643353432987",
                 appId: "1:643353432987:web:ceefaa575238670768473e",
                 measurementId: "G-PP3HX954DM",
@@ -691,15 +691,69 @@
                 console.log('Firebase initialized successfully');
 
                 // Register service worker for /photo/ scope
-                navigator.serviceWorker.register('/photo/firebase-messaging-sw.js', { scope: '/photo/' })
+                navigator.serviceWorker.register('/photo/firebase-messaging-sw.js', { scope: '/photo/', updateViaCache: 'none' })
                     .then((registration) => {
                         console.log('Service Worker registered with scope:', registration.scope);
-                        messaging.useServiceWorker(registration);
+
+                        // Enable notifications button
+                        document.getElementById('enableNotifications').addEventListener('click', () => {
+                            Notification.requestPermission().then(permission => {
+                                if (permission === 'granted') {
+                                    console.log('Notification permission granted.');
+                                    // Replace with your actual VAPID key from Firebase Console
+                                    const vapidKey = "YOUR_ACTUAL_VAPID_KEY_HERE"; // Replace this with the correct VAPID key
+                                    firebase.getToken(messaging, { vapidKey: vapidKey, serviceWorkerRegistration: registration })
+                                        .then((token) => {
+                                            console.log('FCM Token:', token);
+                                            const tokenRef = firebase.ref(database, 'push-tokens/' + token);
+                                            firebase.set(tokenRef, {
+                                                token: token,
+                                                timestamp: new Date().toISOString()
+                                            });
+                                            alert('Notifications activées avec succès!');
+                                        })
+                                        .catch((error) => {
+                                            console.error('Erreur lors de la récupération du token:', error);
+                                            alert('Impossible d\'activer les notifications: ' + error.message);
+                                        });
+                                } else {
+                                    alert('Permission de notification refusée.');
+                                }
+                            }).catch((error) => {
+                                console.error('Erreur lors de la demande de permission:', error);
+                                alert('Erreur lors de la demande de permission: ' + error.message);
+                            });
+                        });
+
+                        // Handle foreground messages
+                        firebase.onMessage(messaging, (payload) => {
+                            try {
+                                console.log('Message reçu au premier plan:', payload);
+                                if (!payload.notification) {
+                                    console.error('Payload does not contain a notification:', payload);
+                                    return;
+                                }
+                                const notificationTitle = payload.notification.title;
+                                const notificationOptions = {
+                                    body: payload.notification.body,
+                                    icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q'
+                                };
+                                navigator.serviceWorker.ready.then((registration) => {
+                                    registration.showNotification(notificationTitle, notificationOptions);
+                                });
+                            } catch (error) {
+                                console.error('Erreur lors du traitement du message au premier plan:', error);
+                            }
+                        });
                     })
                     .catch((error) => {
                         console.error('Service Worker registration failed:', error);
+                        alert('Erreur lors de l\'enregistrement du Service Worker: ' + error.message);
+                        document.getElementById('enableNotifications').disabled = true;
+                        document.getElementById('enableNotifications').textContent = 'Notifications Indisponibles';
                     });
 
+                // Contact form submission
                 document.getElementById('contactForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     const name = document.getElementById('name').value;
@@ -722,6 +776,7 @@
                     });
                 });
 
+                // Display received messages
                 const messagesContainer = document.getElementById('messagesContainer');
                 const messagesRef = firebase.ref(database, 'contacts');
                 firebase.onValue(messagesRef, (snapshot) => {
@@ -745,44 +800,11 @@
                     }
                 });
 
-                document.getElementById('enableNotifications').addEventListener('click', () => {
-                    Notification.requestPermission().then(permission => {
-                        if (permission === 'granted') {
-                            firebase.getToken(messaging, { vapidKey: "4N1hMF3mDP2CZu1EwjF15WFWmT4S6i12htx_9-KTVIU" })
-                                .then((token) => {
-                                    console.log('FCM Token:', token);
-                                    const tokenRef = firebase.ref(database, 'push-tokens/' + token);
-                                    firebase.set(tokenRef, {
-                                        token: token,
-                                        timestamp: new Date().toISOString()
-                                    });
-                                    alert('Notifications activées avec succès!');
-                                })
-                                .catch((error) => {
-                                    console.error('Erreur lors de la récupération du token:', error);
-                                    alert('Impossible d\'activer les notifications: ' + error.message);
-                                });
-                        } else {
-                            alert('Permission de notification refusée.');
-                        }
-                    });
-                });
-
-                firebase.onMessage(messaging, (payload) => {
-                    console.log('Message reçu au premier plan:', payload);
-                    const notificationTitle = payload.notification.title;
-                    const notificationOptions = {
-                        body: payload.notification.body,
-                        icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q'
-                    };
-                    navigator.serviceWorker.ready.then((registration) => {
-                        registration.showNotification(notificationTitle, notificationOptions);
-                    });
-                });
-
             } catch (error) {
                 console.error('Firebase initialization failed:', error);
                 document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non initialisé.</p>';
+                document.getElementById('enableNotifications').disabled = true;
+                document.getElementById('enableNotifications').textContent = 'Notifications Indisponibles';
             }
         }
 
@@ -793,6 +815,8 @@
             } else {
                 console.error('Firebase script not loaded');
                 document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non chargé.</p>';
+                document.getElementById('enableNotifications').disabled = true;
+                document.getElementById('enableNotifications').textContent = 'Notifications Indisponibles';
             }
         });
     </script>
