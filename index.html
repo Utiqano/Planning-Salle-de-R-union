@@ -90,7 +90,7 @@
             box-shadow: 0 0 10px rgba(230, 57, 70, 0.5);
         }
 
-        .navbar .night-mode-toggle, .navbar .language-toggle, .navbar #enableNotifications {
+        .navbar .night-mode-toggle, .navbar .language-toggle {
             background: var(--gradient-bg);
             border: none;
             padding: 0.6rem 1.2rem;
@@ -303,6 +303,82 @@
             color: var(--text-color);
         }
 
+        /* Login Modal Styles */
+        .login-modal .modal-content {
+            background: linear-gradient(135deg, var(--light-bg), rgba(230, 57, 70, 0.1));
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--primary-color);
+        }
+
+        .login-modal .modal-header {
+            background: var(--gradient-bg);
+            color: #fff;
+            border-bottom: none;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .login-modal .modal-title {
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .login-modal .modal-body {
+            padding: 2rem;
+        }
+
+        .login-modal .form-control {
+            border-radius: 10px;
+            border: 1px solid var(--secondary-color);
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text-color);
+            transition: var(--transition);
+        }
+
+        .login-modal .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(230, 57, 70, 0.3);
+            background: #fff;
+        }
+
+        .login-modal .form-label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .login-modal .btn-primary {
+            width: 100%;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .login-modal .btn-secondary {
+            width: 100%;
+            margin-top: 0.5rem;
+            background: var(--dark-bg);
+            border: none;
+            color: #fff;
+        }
+
+        .login-modal .btn-secondary:hover {
+            background: #2a4b7c;
+            box-shadow: 0 0 10px rgba(69, 123, 157, 0.5);
+        }
+
+        .night-mode .login-modal .modal-content {
+            background: var(--dark-bg);
+        }
+
+        .night-mode .login-modal .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            border-color: var(--light-bg);
+        }
+
+        .night-mode .login-modal .form-label {
+            color: var(--text-color);
+        }
+
         @media (max-width: 768px) {
             .hero-section h1 { font-size: 2.2rem; }
             .hero-section h3 { font-size: 1.2rem; }
@@ -310,6 +386,7 @@
             .sidebar { width: 300px; left: -300px; }
             .percentage-circle { width: 130px; height: 130px; }
             .percentage-circle .value { font-size: 2.2rem; }
+            .login-modal .modal-dialog { max-width: 90%; }
         }
 
         @media (max-width: 576px) {
@@ -321,17 +398,23 @@
             .percentage-circle .value { font-size: 1.8rem; }
         }
     </style>
+    <!-- Load Firebase SDK modularly -->
     <script type="module">
+        // Import Firebase modules
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
         import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js';
         import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
         import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js';
 
-        window.firebase = { initializeApp, getAnalytics, getDatabase, ref, set, onValue, getMessaging, getToken, onMessage };
+        // Make Firebase available globally for initFirebase
+        window.firebase = { initializeApp, getAnalytics, getDatabase, ref, set, onValue, getAuth, signInWithEmailAndPassword, getMessaging, getToken, onMessage };
     </script>
+    <!-- Fallback for non-module environments -->
     <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
     <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+    <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
 </head>
 <body>
@@ -394,7 +477,6 @@
                     <li class="nav-item"><a class="nav-link" href="#contact" id="contactToggle" onclick="showSection('contact'); toggleContact();" data-lang-key="contact">Contact</a></li>
                     <li class="nav-item"><a class="nav-link" href="#contactList" id="messagesToggle" onclick="handleMessagesToggle();" data-lang-key="messages">Messages Reçus</a></li>
                     <li class="nav-item"><button class="nav-link night-mode-toggle" id="nightModeToggle" data-lang-key="nightMode">Mode Nuit</button></li>
-                    <li class="nav-item"><button class="nav-link" id="enableNotifications">Activer Notifications</button></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle language-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Langue</a>
                         <ul class="dropdown-menu" aria-labelledby="languageDropdown">
@@ -408,6 +490,32 @@
             </div>
         </div>
     </nav>
+
+    <!-- Login Modal -->
+    <div class="modal fade login-modal" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loginModalLabel">Connexion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="loginEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="loginEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="loginPassword" class="form-label">Mot de passe</label>
+                            <input type="password" class="form-control" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Se connecter</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <section id="accueil" class="section-container hero-section text-center">
         <div class="container">
@@ -526,111 +634,6 @@
             }
         }
 
-        const savedLang = getLocalStorage('language', 'fr');
-        changeLanguage(savedLang);
-
-        const toggleButton = document.getElementById('nightModeToggle');
-        const body = document.body;
-        toggleButton.addEventListener('click', () => {
-            body.classList.toggle('night-mode');
-            const isNightMode = body.classList.contains('night-mode');
-            toggleButton.textContent = isNightMode ? 'Mode Jour' : 'Mode Nuit';
-            try {
-                localStorage.setItem('nightMode', isNightMode ? 'enabled' : 'disabled');
-            } catch (e) {
-                console.warn('localStorage blocked:', e);
-            }
-        });
-
-        if (getLocalStorage('nightMode', 'disabled') === 'enabled') {
-            body.classList.add('night-mode');
-            toggleButton.textContent = 'Mode Jour';
-        }
-
-        const ADMIN_PASSWORD = 'admin123';
-        const MESSAGES_PASSWORD = 'wkw123';
-        let isAuthenticatedPerformance = false;
-        let isAuthenticatedMessages = false;
-
-        const performanceDropdown = document.getElementById('performanceDropdown');
-        performanceDropdown.addEventListener('click', (e) => {
-            if (!isAuthenticatedPerformance) {
-                e.preventDefault();
-                const password = prompt('Entrez le mot de passe pour accéder à la section Performance:');
-                if (password === ADMIN_PASSWORD) {
-                    isAuthenticatedPerformance = true;
-                    const dropdown = new bootstrap.Dropdown(performanceDropdown);
-                    dropdown.toggle();
-                } else if (password !== null) {
-                    alert('Mot de passe incorrect!');
-                }
-            }
-        });
-
-        function showPercentage(title, percentage) {
-            const section = document.getElementById('percentageResult');
-            const percentageValue = document.getElementById('percentageValue');
-            const progressCircle = document.querySelector('.percentage-circle .progress');
-            const numericValue = parseFloat(percentage);
-
-            document.getElementById('percentageTitle').textContent = title;
-            percentageValue.textContent = percentage + '%';
-
-            if (numericValue <= 74) percentageValue.style.color = 'var(--red-color)';
-            else if (numericValue <= 89) percentageValue.style.color = 'var(--orange-color)';
-            else percentageValue.style.color = 'var(--green-color)';
-
-            const dashArray = (numericValue / 100) * 471;
-            progressCircle.style.strokeDasharray = `${dashArray} 471`;
-
-            showSection('percentageResult');
-        }
-
-        document.querySelectorAll('.percentage-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (isAuthenticatedPerformance) {
-                    const title = item.getAttribute('data-title');
-                    const percentage = item.getAttribute('data-percentage');
-                    showPercentage(title, percentage);
-                }
-            });
-        });
-
-        function handleMessagesToggle() {
-            if (!isAuthenticatedMessages) {
-                const password = prompt('Entrez le mot de passe pour voir les messages reçus:');
-                if (password === MESSAGES_PASSWORD) {
-                    isAuthenticatedMessages = true;
-                    showSection('contactList');
-                } else if (password !== null) {
-                    alert('Mot de passe incorrect!');
-                    showSection('accueil');
-                }
-            } else {
-                showSection('contactList');
-            }
-        }
-
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const closeSidebar = document.getElementById('closeSidebar');
-
-        sidebarToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            sidebar.classList.toggle('active');
-        });
-
-        closeSidebar.addEventListener('click', () => {
-            sidebar.classList.remove('active');
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target) && sidebar.classList.contains('active')) {
-                sidebar.classList.remove('active');
-            }
-        });
-
         function showSection(sectionId) {
             document.querySelectorAll('.section-container').forEach(section => {
                 section.style.display = 'none';
@@ -653,55 +656,35 @@
             }
         }
 
-        document.getElementById('contactToggle').addEventListener('click', function(e) {
-            e.preventDefault();
-            toggleContact();
-        });
+        function showPercentage(title, percentage) {
+            const section = document.getElementById('percentageResult');
+            const percentageValue = document.getElementById('percentageValue');
+            const progressCircle = document.querySelector('.percentage-circle .progress');
+            const numericValue = parseFloat(percentage);
 
-        document.querySelectorAll('[data-bs-toggle="modal"]').forEach(link => {
-            link.addEventListener('click', e => {
-                const videoSrc = e.target.getAttribute('data-video');
-                document.getElementById('videoPlayer').src = videoSrc;
-            });
-        });
+            document.getElementById('percentageTitle').textContent = title;
+            percentageValue.textContent = percentage + '%';
 
-        document.getElementById('videoModal').addEventListener('hidden.bs.modal', () => {
-            document.getElementById('videoPlayer').src = '';
-        });
+            if (numericValue <= 74) percentageValue.style.color = 'var(--red-color)';
+            else if (numericValue <= 89) percentageValue.style.color = 'var(--orange-color)';
+            else percentageValue.style.color = 'var(--green-color)';
 
-        function registerServiceWorker() {
-            return navigator.serviceWorker.register('/photo/firebase-messaging-sw.js', { scope: '/photo/', updateViaCache: 'none' })
-                .then((registration) => {
-                    console.log('Service Worker registered with scope:', registration.scope);
-                    return fetch('/photo/firebase-messaging-sw.js')
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`Failed to fetch Service Worker script: ${response.status} ${response.statusText}`);
-                            }
-                            console.log('Service Worker script fetched successfully');
-                            return registration;
-                        })
-                        .catch(fetchError => {
-                            console.error('Fetch error for Service Worker script:', fetchError);
-                            throw fetchError;
-                        });
-                })
-                .catch((error) => {
-                    console.error('Service Worker registration failed:', error);
-                    throw error;
-                });
+            const dashArray = (numericValue / 100) * 471;
+            progressCircle.style.strokeDasharray = `${dashArray} 471`;
+
+            showSection('percentageResult');
         }
 
         function initFirebase() {
             const firebaseConfig = {
-                apiKey: "AIzaSyBRkQC9shy1T0wh3KGCLTT3d3OSsg-FnFI",
-                authDomain: "department-bf249.firebaseapp.com",
-                projectId: "department-bf249",
-                storageBucket: "department-bf249.appspot.com",
-                messagingSenderId: "643353432987",
-                appId: "1:643353432987:web:ceefaa575238670768473e",
-                measurementId: "G-PP3HX954DM",
-                databaseURL: "https://department-bf249-default-rtdb.firebaseio.com/"
+                apiKey: "AIzaSyCfRyHXoHE1dftV9YI4bIpS9Bm10MLZTLE",
+                authDomain: "wkw1-44590.firebaseapp.com",
+                projectId: "wkw1-44590",
+                storageBucket: "wkw1-44590.firebasestorage.app",
+                messagingSenderId: "176458799163",
+                appId: "1:176458799163:web:5002621bc1362a6e46e41e",
+                measurementId: "G-B1G2FBTDED",
+                databaseURL: "https://wkw1-44590-default-rtdb.firebaseio.com/"
             };
 
             try {
@@ -713,90 +696,7 @@
                 window.messaging = messaging;
                 console.log('Firebase initialized successfully');
 
-                let retryCount = 0;
-                const maxRetries = 3;
-                const retryServiceWorkerRegistration = () => {
-                    registerServiceWorker()
-                        .then((registration) => {
-                            console.log('Service Worker registration successful after', retryCount, 'retries');
-
-                            document.getElementById('enableNotifications').addEventListener('click', () => {
-                                Notification.requestPermission().then(permission => {
-                                    if (permission === 'granted') {
-                                        console.log('Notification permission granted.');
-                                        const vapidKey = "DYTmid_ku6Hu_tK5Kuzy4VZvoDTcgoRDtA9T0pDhQnw"; // Replace with your VAPID key
-                                        if (!vapidKey || vapidKey === "DYTmid_ku6Hu_tK5Kuzy4VZvoDTcgoRDtA9T0pDhQnw") {
-                                            console.error('VAPID key is not set. Please replace the placeholder with the actual VAPID key.');
-                                            alert('Erreur: Clé VAPID non configurée. Veuillez remplacer le placeholder dans le code.');
-                                            return;
-                                        }
-                                        firebase.getToken(messaging, { vapidKey: vapidKey, serviceWorkerRegistration: registration })
-                                            .then((token) => {
-                                                console.log('FCM Token:', token);
-                                                const tokenRef = firebase.ref(database, 'push-tokens/' + token);
-                                                firebase.set(tokenRef, {
-                                                    token: token,
-                                                    timestamp: new Date().toISOString()
-                                                }).then(() => {
-                                                    console.log('FCM token saved to database');
-                                                }).catch(error => {
-                                                    console.error('Error saving FCM token to database:', error);
-                                                });
-                                                alert('Notifications activées avec succès!');
-                                            })
-                                            .catch((error) => {
-                                                console.error('Erreur lors de la récupération du token:', error);
-                                                alert('Impossible d\'activer les notifications: ' + error.message);
-                                            });
-                                    } else {
-                                        console.log('Notification permission denied');
-                                        alert('Permission de notification refusée.');
-                                    }
-                                }).catch((error) => {
-                                    console.error('Erreur lors de la demande de permission:', error);
-                                    alert('Erreur lors de la demande de permission: ' + error.message);
-                                });
-                            });
-
-                            firebase.onMessage(messaging, (payload) => {
-                                try {
-                                    console.log('Foreground message received:', payload);
-                                    if (!payload.notification) {
-                                        console.error('Payload does not contain a notification:', payload);
-                                        return;
-                                    }
-                                    const notificationTitle = payload.notification.title;
-                                    const notificationOptions = {
-                                        body: payload.notification.body,
-                                        icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q'
-                                    };
-                                    navigator.serviceWorker.ready.then((registration) => {
-                                        registration.showNotification(notificationTitle, notificationOptions);
-                                        console.log('Foreground notification displayed:', notificationTitle);
-                                    });
-                                } catch (error) {
-                                    console.error('Erreur lors du traitement du message au premier plan:', error);
-                                }
-                            });
-                        })
-                        .catch((error) => {
-                            retryCount++;
-                            if (retryCount < maxRetries) {
-                                console.log(`Retrying Service Worker registration (${retryCount}/${maxRetries})...`);
-                                setTimeout(retryServiceWorkerRegistration, 2000);
-                            } else {
-                                console.error('Service Worker registration failed after', maxRetries, 'retries:', error);
-                                alert('Erreur lors de l\'enregistrement du Service Worker après plusieurs tentatives: ' + error.message);
-                                document.getElementById('enableNotifications').disabled = true;
-                                document.getElementById('enableNotifications').textContent = 'Notifications Indisponibles';
-                                const messagesContainer = document.getElementById('messagesContainer');
-                                messagesContainer.innerHTML += '<p class="text-center text-danger">Les notifications push ne sont pas disponibles en raison d\'une erreur technique.</p>';
-                            }
-                        });
-                };
-
-                retryServiceWorkerRegistration();
-
+                // Contact form submission
                 document.getElementById('contactForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     const name = document.getElementById('name').value;
@@ -809,24 +709,31 @@
                         email: email,
                         message: message,
                         timestamp: new Date().toISOString()
-                    }).then(() => {
+                    })
+                    .then(() => {
                         console.log('Message saved:', { name, email, message });
                         alert('Message enregistré dans Firebase avec succès!');
                         this.reset();
-                    }).catch((error) => {
+                    })
+                    .catch((error) => {
                         console.error('Error saving message:', error);
                         alert('Erreur lors de l\'enregistrement: ' + error.message);
                     });
                 });
 
+                // Messages retrieval
                 const messagesContainer = document.getElementById('messagesContainer');
                 const messagesRef = firebase.ref(database, 'contacts');
                 firebase.onValue(messagesRef, (snapshot) => {
+                    console.log('Raw snapshot:', snapshot);
+                    console.log('Snapshot value:', snapshot.val());
                     messagesContainer.innerHTML = '';
                     const messages = snapshot.val();
                     if (messages) {
+                        console.log('Messages found:', messages);
                         Object.keys(messages).forEach((key) => {
                             const msg = messages[key];
+                            console.log('Processing message:', msg);
                             const messageCard = `
                                 <div class="col-md-4 message-card">
                                     <h5>${msg.name || 'N/A'}</h5>
@@ -838,28 +745,229 @@
                             messagesContainer.innerHTML += messageCard;
                         });
                     } else {
+                        console.log('No messages in database');
                         messagesContainer.innerHTML = '<p class="text-center">Aucun message pour le moment.</p>';
                     }
+                }, (error) => {
+                    console.error('Error fetching messages:', error);
+                    messagesContainer.innerHTML = '<p class="text-center">Erreur lors du chargement des messages: ' + error.message + '</p>';
                 });
 
+                // Push notification setup
+                setupPushNotifications(messaging, database);
             } catch (error) {
                 console.error('Firebase initialization failed:', error);
                 document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non initialisé.</p>';
-                document.getElementById('enableNotifications').disabled = true;
-                document.getElementById('enableNotifications').textContent = 'Notifications Indisponibles';
             }
         }
 
+        function setupPushNotifications(messaging, database) {
+            // Request permission for notifications
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+                    // Get the FCM token
+                    firebase.getToken(messaging, {
+                        vapidKey: 'BKhX5mY4SWcXHKkXslX6fT0jguQ2hL-0EiV190ycfT0k0SBdCY5WhKXslX6fT0jguQ2hL-0EiV190ycfT0'
+                    }).then((currentToken) => {
+                        if (currentToken) {
+                            console.log('FCM Token:', currentToken);
+                            // Save the token to the database
+                            const tokenRef = firebase.ref(database, 'pushTokens/' + currentToken);
+                            firebase.set(tokenRef, {
+                                token: currentToken,
+                                timestamp: new Date().toISOString()
+                            }).then(() => {
+                                console.log('Push token saved to database.');
+                            }).catch(error => {
+                                console.error('Error saving push token:', error);
+                            });
+                        } else {
+                            console.log('No FCM token available. Request permission to generate one.');
+                        }
+                    }).catch(error => {
+                        console.error('Error retrieving FCM token:', error);
+                    });
+
+                    // Handle incoming messages (foreground)
+                    firebase.onMessage(messaging, (payload) => {
+                        console.log('Message received:', payload);
+                        const notificationTitle = payload.notification.title;
+                        const notificationOptions = {
+                            body: payload.notification.body,
+                            icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q'
+                        };
+                        new Notification(notificationTitle, notificationOptions);
+                    });
+                } else {
+                    console.log('Notification permission denied.');
+                }
+            }).catch(error => {
+                console.error('Error requesting notification permission:', error);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            // Initial page setup
             showSection('accueil');
             if (typeof firebase !== 'undefined' && firebase.initializeApp) {
                 initFirebase();
             } else {
                 console.error('Firebase script not loaded');
-                document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non chargé.</p>';
-                document.getElementById('enableNotifications').disabled = true;
-                document.getElementById('enableNotifications').textContent = 'Notifications Indisponibles';
+                document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non chargé. Veuillez vérifier votre connexion internet.</p>';
             }
+
+            // Language and night mode setup
+            const savedLang = getLocalStorage('language', 'fr');
+            changeLanguage(savedLang);
+
+            const toggleButton = document.getElementById('nightModeToggle');
+            const body = document.body;
+            toggleButton.addEventListener('click', () => {
+                body.classList.toggle('night-mode');
+                const isNightMode = body.classList.contains('night-mode');
+                toggleButton.textContent = isNightMode ? 'Mode Jour' : 'Mode Nuit';
+                try {
+                    localStorage.setItem('nightMode', isNightMode ? 'enabled' : 'disabled');
+                } catch (e) {
+                    console.warn('localStorage blocked:', e);
+                }
+            });
+
+            if (getLocalStorage('nightMode', 'disabled') === 'enabled') {
+                body.classList.add('night-mode');
+                toggleButton.textContent = 'Mode Jour';
+            }
+
+            // Sidebar setup
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const closeSidebar = document.getElementById('closeSidebar');
+
+            sidebarToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                sidebar.classList.toggle('active');
+            });
+
+            closeSidebar.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target) && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            });
+
+            // Authentication setup
+            let isAuthenticatedPerformance = false;
+            let isAuthenticatedMessages = false;
+            let loginCallback = null;
+
+            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+            const loginForm = document.getElementById('loginForm');
+            const loginEmail = document.getElementById('loginEmail');
+            const loginPassword = document.getElementById('loginPassword');
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!firebase.getAuth) {
+                    alert('Firebase non initialisé. Veuillez vérifier votre connexion.');
+                    return;
+                }
+                const email = loginEmail.value;
+                const password = loginPassword.value;
+
+                try {
+                    const auth = firebase.getAuth();
+                    await firebase.signInWithEmailAndPassword(auth, email, password);
+                    loginModal.hide();
+                    if (loginCallback) {
+                        loginCallback(true);
+                    }
+                } catch (error) {
+                    console.error('Authentication error:', error);
+                    alert('Échec de l\'authentification: ' + error.message);
+                }
+            });
+
+            const performanceDropdown = document.getElementById('performanceDropdown');
+            performanceDropdown.addEventListener('mousedown', (e) => {
+                if (!isAuthenticatedPerformance) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    document.getElementById('loginModalLabel').textContent = translations[document.documentElement.lang].performance + ' - Connexion';
+                    loginModal.show();
+                    loginCallback = (success) => {
+                        if (success) {
+                            isAuthenticatedPerformance = true;
+                            const dropdown = new bootstrap.Dropdown(performanceDropdown);
+                            dropdown.toggle();
+                        }
+                    };
+                }
+            });
+
+            document.querySelectorAll('.percentage-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (isAuthenticatedPerformance) {
+                        const title = item.getAttribute('data-title');
+                        const percentage = item.getAttribute('data-percentage');
+                        showPercentage(title, percentage);
+                    }
+                });
+            });
+
+            async function handleMessagesToggle() {
+                try {
+                    if (!isAuthenticatedMessages) {
+                        document.getElementById('loginModalLabel').textContent = translations[document.documentElement.lang].messages + ' - Connexion';
+                        loginModal.show();
+                        loginCallback = (success) => {
+                            if (success) {
+                                isAuthenticatedMessages = true;
+                                showSection('contactList');
+                                console.log('Messages section unlocked');
+                            } else {
+                                showSection('accueil');
+                            }
+                        };
+                    } else {
+                        showSection('contactList');
+                    }
+                } catch (error) {
+                    console.error('Error in handleMessagesToggle:', error);
+                    alert('Erreur: ' + error.message);
+                    showSection('accueil');
+                }
+            }
+
+            document.getElementById('messagesToggle').addEventListener('click', (e) => {
+                e.preventDefault();
+                handleMessagesToggle();
+            });
+
+            document.getElementById('loginModal').addEventListener('show.bs.modal', () => {
+                loginForm.reset();
+            });
+
+            document.getElementById('loginModal').addEventListener('hidden.bs.modal', () => {
+                loginForm.reset();
+                loginCallback = null;
+            });
+
+            document.getElementById('contactToggle').addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleContact();
+            });
+
+            document.querySelectorAll('[data-bs-toggle="modal"]').forEach(link => {
+                link.addEventListener('click', e => {
+                    const videoSrc = e.target.getAttribute('data-video');
+                    document.getElementById('videoPlayer').src = videoSrc;
+                });
+            });
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
