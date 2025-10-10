@@ -3,973 +3,526 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WKW AUTOMOTIVE</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Salle de Réunion</title>
     <style>
-        :root {
-            --primary-color: #e63946;
-            --secondary-color: #457b9d;
-            --light-bg: #f1faee;
-            --dark-bg: #1d3557;
-            --shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            --transition: all 0.3s ease;
-            --red-color: #ff0000;
-            --orange-color: #ff8000;
-            --green-color: #00cc00;
-            --text-color: #333;
-            --body-bg: #fff;
-            --gradient-bg: linear-gradient(135deg, #e63946, #457b9d);
-            --navbar-bg: linear-gradient(135deg, #e63946, #457b9d);
-            --navbar-scrolled-bg: linear-gradient(135deg, rgba(230, 57, 70, 0.9), rgba(69, 123, 157, 0.9));
-        }
-
-        .night-mode {
-            --text-color: #f1faee;
-            --body-bg: #1d3557;
-            --light-bg: #457b9d;
-            --dark-bg: #14213d;
-            --navbar-bg: linear-gradient(135deg, #457b9d, #1d3557);
-            --navbar-scrolled-bg: linear-gradient(135deg, rgba(69, 123, 157, 0.9), rgba(29, 53, 87, 0.9));
-        }
-
         body {
-            font-family: 'Roboto', sans-serif;
-            line-height: 1.7;
-            color: var(--text-color);
-            background-color: var(--body-bg);
-            transition: var(--transition);
-            overflow-x: hidden;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
         }
-
-        body[lang="ar"] {
-            direction: rtl;
-            text-align: right;
-        }
-
-        .navbar {
-            background: var(--navbar-bg);
-            padding: 0.8rem 1.5rem;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(5px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            opacity: 1;
-        }
-
-        .navbar.scrolled {
-            background: var(--navbar-scrolled-bg);
-            padding: 0.6rem 1.5rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .navbar-brand {
-            font-weight: 800;
-            font-size: 1.6rem;
-            color: #fff;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-        }
-
-        .navbar-nav .nav-link {
-            color: #fff !important;
-            font-weight: 600;
-            padding: 0.6rem 1.2rem !important;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 25px;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
-
-        .navbar-nav .nav-link:hover {
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 10px rgba(230, 57, 70, 0.5);
-        }
-
-        .navbar .night-mode-toggle, .navbar .language-toggle {
-            background: var(--gradient-bg);
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 25px;
-            color: #fff;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .hero-section {
-            background: linear-gradient(135deg, var(--light-bg), rgba(230, 57, 70, 0.1));
-            padding: 6rem 0;
-            margin-top: 60px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/gear.png') repeat;
-            opacity: 0.1;
-            animation: parallax 20s linear infinite;
-        }
-
-        .hero-section h1 {
-            color: var(--primary-color);
-            font-size: 2.8rem;
-            font-weight: 900;
-            letter-spacing: 1.5px;
-            animation: fadeInDown 0.8s ease forwards;
-        }
-
-        .hero-section h3 {
-            font-size: 1.4rem;
-            font-weight: 500;
-            max-width: 90%;
-            margin: 1rem auto;
-            color: var(--text-color);
-            animation: fadeInDown 1s ease forwards 0.2s;
-            opacity: 0;
-        }
-
-        .center-image img {
-            max-width: 280px;
-            border-radius: 50%;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            box-shadow: var(--shadow);
-            animation: bounceIn 1.2s ease forwards 0.4s;
-            opacity: 0;
-        }
-
-        @keyframes fadeInDown {
-            0% { opacity: 0; transform: translateY(-20px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: translateY(50px) scale(0.9); }
-            60% { opacity: 1; transform: translateY(-10px) scale(1.05); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        @keyframes parallax {
-            0% { background-position: 0 0; }
-            100% { background-position: 100px 100px; }
-        }
-
-        .btn-primary {
-            background: var(--gradient-bg);
-            border: none;
-            padding: 0.8rem 1.8rem;
-            border-radius: 10px;
-            font-weight: 500;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(230, 57, 70, 0.5);
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -350px;
-            width: 350px;
-            height: 100%;
-            background: linear-gradient(180deg, rgba(29, 53, 87, 0.95), rgba(42, 42, 42, 0.95));
-            color: var(--text-color);
-            box-shadow: var(--shadow);
-            transition: left 0.5s ease;
-            z-index: 2000;
-            border-radius: 0 15px 15px 0;
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-content {
-            padding: 2rem;
-        }
-
-        .sidebar-content h2 {
-            color: var(--primary-color);
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .percentage-alert {
-            padding: 2rem;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #ffffff, var(--light-bg));
-            box-shadow: var(--shadow), inset 0 0 15px rgba(230, 57, 70, 0.3);
-            border: 3px solid var(--primary-color);
-            text-align: center;
-        }
-
-        .percentage-circle {
-            position: relative;
-            width: 150px;
-            height: 150px;
-            margin: 1.5rem auto;
-            background: radial-gradient(circle, rgba(230, 57, 70, 0.1) 0%, transparent 70%);
-        }
-
-        .percentage-circle svg {
-            transform: rotate(-90deg);
-        }
-
-        .percentage-circle circle {
-            fill: none;
-            stroke: #ddd;
-            stroke-width: 14;
-        }
-
-        .percentage-circle .progress {
-            stroke: url(#gradientStroke);
-            stroke-dasharray: 0 471;
-            transition: stroke-dasharray 1.5s ease;
-        }
-
-        .percentage-circle .value {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2.8rem;
-            font-weight: 800;
-        }
-
-        footer {
-            background: var(--dark-bg);
-            color: #fff;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        footer .gear-cluster {
+        .header {
             display: flex;
-            gap: 0.5rem;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
         }
-
-        footer i {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            animation: gearSpin 4s linear infinite;
+        .logo {
+            display: flex;
+            align-items: center;
         }
-
-        @keyframes gearSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #808080;
         }
-
-        .section-container {
-            padding: 3rem 0;
+        .logo-accent {
+            color: #ff0000;
         }
-
-        #messagesContainer .message-card {
-            background: var(--light-bg);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
+        h1 {
+            color: #333;
+            margin: 0;
         }
-
-        #messagesContainer .message-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        #messagesContainer .message-card h5 {
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        #messagesContainer .message-card p {
-            margin: 0.5rem 0;
-        }
-
-        .night-mode #messagesContainer .message-card {
-            background: var(--dark-bg);
-            color: var(--text-color);
-        }
-
-        /* Login Modal Styles */
-        .login-modal .modal-content {
-            background: linear-gradient(135deg, var(--light-bg), rgba(230, 57, 70, 0.1));
-            border-radius: 15px;
-            box-shadow: var(--shadow);
-            border: 2px solid var(--primary-color);
-        }
-
-        .login-modal .modal-header {
-            background: var(--gradient-bg);
-            color: #fff;
-            border-bottom: none;
-            border-radius: 15px 15px 0 0;
-        }
-
-        .login-modal .modal-title {
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        .login-modal .modal-body {
-            padding: 2rem;
-        }
-
-        .login-modal .form-control {
-            border-radius: 10px;
-            border: 1px solid var(--secondary-color);
-            background: rgba(255, 255, 255, 0.8);
-            color: var(--text-color);
-            transition: var(--transition);
-        }
-
-        .login-modal .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 10px rgba(230, 57, 70, 0.3);
-            background: #fff;
-        }
-
-        .login-modal .form-label {
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        .login-modal .btn-primary {
-            width: 100%;
-            margin-top: 1rem;
-            font-size: 1.1rem;
-        }
-
-        .login-modal .btn-secondary {
-            width: 100%;
-            margin-top: 0.5rem;
-            background: var(--dark-bg);
+        .logout {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 15px;
             border: none;
-            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
         }
-
-        .login-modal .btn-secondary:hover {
-            background: #2a4b7c;
-            box-shadow: 0 0 10px rgba(69, 123, 157, 0.5);
+        .login-section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 0 auto 30px;
         }
-
-        .night-mode .login-modal .modal-content {
-            background: var(--dark-bg);
+        .main-content {
+            display: none;
         }
-
-        .night-mode .login-modal .form-control {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-color);
-            border-color: var(--light-bg);
+        .role-switcher {
+            margin-bottom: 20px;
+            display: none;
         }
-
-        .night-mode .login-modal .form-label {
-            color: var(--text-color);
+        .role-switcher button {
+            background-color: #ddd;
+            color: #333;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
         }
-
-        @media (max-width: 768px) {
-            .hero-section h1 { font-size: 2.2rem; }
-            .hero-section h3 { font-size: 1.2rem; }
-            .center-image img { max-width: 200px; }
-            .sidebar { width: 300px; left: -300px; }
-            .percentage-circle { width: 130px; height: 130px; }
-            .percentage-circle .value { font-size: 2.2rem; }
-            .login-modal .modal-dialog { max-width: 90%; }
+        .role-switcher button.active {
+            background-color: #ff0000;
+            color: white;
         }
-
-        @media (max-width: 576px) {
-            .hero-section h1 { font-size: 1.8rem; }
-            .hero-section h3 { font-size: 1rem; }
-            .center-image img { max-width: 160px; }
-            .sidebar { width: 100%; left: -100%; }
-            .percentage-circle { width: 110px; height: 110px; }
-            .percentage-circle .value { font-size: 1.8rem; }
+        .role-switcher button:disabled {
+            background-color: #eee;
+            color: #999;
+            cursor: not-allowed;
+        }
+        .view {
+            display: none;
+        }
+        .view.active {
+            display: block;
+        }
+        form {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #ff0000;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button:hover:not(:disabled) {
+            background-color: #cc0000;
+        }
+        .requests-list {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .request-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .request-item h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: white;
+        }
+        .status.pending { background-color: #ffc107; color: #000; }
+        .status.to_rh { background-color: #17a2b8; }
+        .status.approved { background-color: #28a745; }
+        .status.rejected { background-color: #dc3545; }
+        .action-buttons {
+            margin-top: 10px;
+        }
+        .action-buttons button {
+            width: auto;
+            margin-right: 10px;
+            padding: 8px 15px;
+        }
+        .my-requests {
+            max-width: 500px;
+        }
+        .error, .success {
+            color: #dc3545;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            color: #28a745;
+            background-color: #d4edda;
+        }
+        .export-button {
+            background-color: #007bff;
+            margin-bottom: 20px;
+            width: auto;
+            padding: 8px 15px;
+        }
+        .export-button:hover {
+            background-color: #0056b3;
         }
     </style>
-    <!-- Load Firebase SDK modularly -->
-    <script type="module">
-        // Import Firebase modules
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics.js';
-        import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js';
-        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-        import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js';
-
-        // Make Firebase available globally for initFirebase
-        window.firebase = { initializeApp, getAnalytics, getDatabase, ref, set, onValue, getAuth, signInWithEmailAndPassword, getMessaging, getToken, onMessage };
-    </script>
-    <!-- Fallback for non-module environments -->
-    <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-    <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
-    <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-    <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-    <script nomodule src="https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging-compat.js"></script>
 </head>
 <body>
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-content">
-            <h2>WKW Automotive</h2>
-            <p>Bienvenue chez WKW.group</p>
-            <p>Aluminium, acier et plastique</p>
-            <p>Des matériaux aux aptitudes insoupçonnées pour l'industrie automobile et les applications industrielles orientées design.</p>
-            <p><strong>WKW Tunisie S.A.R.L.</strong></p>
-            <p>Zone Industrielle Utique</p>
-            <p>7060 Bizerte, Tunisie</p>
-            <button id="closeSidebar" class="btn btn-primary">Fermer</button>
+    <div class="header">
+        <div class="logo">
+            <span class="logo-text">WKW Automotive <span class="logo-accent">Tunisie</span></span>
         </div>
+        <h1>Salle de Réunion</h1>
+        <button id="logout-btn" class="logout" style="display: none;">Déconnexion</button>
     </div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#" id="sidebarToggle">WKW AUTOMOTIVE</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#accueil" onclick="showSection('accueil');" data-lang-key="home">Accueil</a></li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="performanceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-lang-key="performance">Performance</a>
-                        <ul class="dropdown-menu" aria-labelledby="performanceDropdown">
-                            <li><a class="dropdown-item percentage-item" href="#" data-title="Taux 5S UAP1" data-percentage="80">Taux 5S UAP1</a></li>
-                            <li><a class="dropdown-item percentage-item" href="#" data-title="Taux Gemba UAP1" data-percentage="82">Taux Gemba UAP1</a></li>
-                            <li><a class="dropdown-item percentage-item" href="#" data-title="Taux 5S Logistique" data-percentage="80">Taux 5S Logistique</a></li>
-                            <li><a class="dropdown-item percentage-item" href="#" data-title="Taux Gemba Logistique" data-percentage="75">Taux Gemba Logistique</a></li>
-                            <li><a class="dropdown-item percentage-item" href="#" data-title="Taux 5S Usine" data-percentage="79">Taux 5S Usine</a></li>
-                            <li><a class="dropdown-item percentage-item" href="#" data-title="Taux Gemba Usine" data-percentage="78">Taux Gemba Usine</a></li>
-                            <li><a class="dropdown-item percentage-item" href="#" data-title="Taux 5S UAP2" data-percentage="77">Taux 5S UAP2</a></li>
-                            <li><a class="dropdown-item percentage-item" href="#" data-title="Taux Gemba UAP2" data-percentage="75">Taux Gemba UAP2</a></li>
-                            <li><a class="dropdown-item" href="https://wkwgroup-my.sharepoint.com/:x:/r/personal/houssine_trabelsi_wkw-group_com/Documents/App%20PDF/Plan%20d%27action%20ligne%20app.xlsx?d=w1a2ebd41f88f4be0a6c87bf03ade0b8b&csf=1&web=1&e=eFZxtB" target="_blank">Plan d'action Gemba</a></li>
-                            <li><a class="dropdown-item" href="https://wkwgroup-my.sharepoint.com/:x:/r/personal/houssine_trabelsi_wkw-group_com/Documents/App%20PDF/Plan%20d%27action%205%20S%20app.xlsx?d=w7a7dfb3415884b3290dbfe066805cf20&csf=1&web=1&e=xmDan6" target="_blank">Plan d'action 5S</a></li>
-                            <li><a class="dropdown-item" href="https://wkwgroup-my.sharepoint.com/:x:/r/personal/houssine_trabelsi_wkw-group_com/Documents/App%20PDF/suivi%20mensuel%20Gemba%20et%205S.xlsx?d=wd411a7fafa334d068ef6d48acc6efb4f&csf=1&web=1&e=ed2hQ2" target="_blank">Suivi mensuel Gemba et 5S</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-lang-key="resources">Ressources</a>
-                        <ul class="dropdown-menu" aria-labelledby="resourcesDropdown">
-                            <li><a class="dropdown-item" href="https://forms.office.com/pages/responsepage.aspx?id=Yy2gqiIfe0W77Avd4jtr3wM3f1Qll_xKkMAzfzJQ_BRUM1hRVVYyQ0hBOFpGQ1lGMlgzSkpNS1BETC4u&route=shorturl" target="_blank">Audit Gemba OJT Ligne</a></li>
-                            <li><a class="dropdown-item" href="https://forms.office.com/Pages/ResponsePage.aspx?id=Yy2gqiIfe0W77Avd4jtr3wM3f1Qll_xKkMAzfzJQ_BRUNEEyWERCWlhKUEs4NzNSQ0k1NUwxRUhHMS4u" target="_blank">Propositions d'amélioration</a></li>
-                            <li><a class="dropdown-item" href="https://forms.office.com/pages/responsepage.aspx?id=Yy2gqiIfe0W77Avd4jtr3wM3f1Qll_xKkMAzfzJQ_BRUMDVBQkVHM002WUhaNUdINVpaTFpTTTVSRC4u&route=shorturl" target="_blank">Audit Gemba Mur Qualité</a></li>
-                            <li><a class="dropdown-item" href="https://forms.office.com/pages/responsepage.aspx?id=Yy2gqiIfe0W77Avd4jtr3wM3f1Qll_xKkMAzfzJQ_BRURjJOMUdPOVFXU1FUR0tCN09WQTdJWVdHRS4u&route=shorturl" target="_blank">Audit Gemba Magasin</a></li>
-                            <li><a class="dropdown-item" href="https://forms.office.com/pages/responsepage.aspx?id=Yy2gqiIfe0W77Avd4jtr3wM3f1Qll_xKkMAzfzJQ_BRUNzQ4MldBM0dTVzc0MFRHVlc0UlU2VE9QRi4u&route=shorturl" target="_blank">Audit 5S</a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/ni5AtO-92YE">Instruction de contrôle 100%</a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/finG5RcRS1w">Instruction de nettoyage presse injection</a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/pE_ptDrpPDM">F83</a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/BweHTgi-L_Y">Instruction tri sélectif</a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/PlZpe_P7OU8">Propositions d'amélioration</a></li>
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#videoModal" data-video="https://www.youtube.com/embed/ntKqMhbqTII">Vidéo 5S</a></li>
-                            <li><a class="dropdown-item" href="https://wkwgroup-my.sharepoint.com/:x:/r/personal/houssine_trabelsi_wkw-group_com/_layouts/15/Doc.aspx?sourcedoc=%7BE62360FF-0F09-45B3-8656-782A6158348F%7D&file=Planning%205S.xlsx&action=default&mobileredirect=true" target="_blank">Planning 5S</a></li>
-                            <li><a class="dropdown-item" href="https://wkwgroup-my.sharepoint.com/:x:/g/personal/houssine_trabelsi_wkw-group_com/ETxX6xG42nFJqQV1-PaMiFIB2aBMLG-Ux7JdHCwLSOYtIA?e=B1xLbs" target="_blank">Planning Gemba</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="#contact" id="contactToggle" onclick="showSection('contact'); toggleContact();" data-lang-key="contact">Contact</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#contactList" id="messagesToggle" onclick="handleMessagesToggle();" data-lang-key="messages">Messages Reçus</a></li>
-                    <li class="nav-item"><button class="nav-link night-mode-toggle" id="nightModeToggle" data-lang-key="nightMode">Mode Nuit</button></li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle language-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Langue</a>
-                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('fr')">Français</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')">العربية</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">English</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('de')">Deutsch</a></li>
-                        </ul>
-                    </li>
-                </ul>
+    <div id="login-section" class="login-section">
+        <h2>Connexion</h2>
+        <form id="login-form">
+            <label for="email">Email :</label>
+            <input type="email" id="email" name="email" required>
+            <label for="password">Mot de passe :</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Se connecter</button>
+            <div id="login-error" class="error" style="display: none;"></div>
+        </form>
+    </div>
+
+    <div id="main-content" class="main-content">
+        <div class="role-switcher" id="role-switcher">
+            <button id="demandeur-btn" class="active">Demandeur</button>
+            <button id="admin-btn">Admin</button>
+            <button id="rh-btn">RH</button>
+        </div>
+
+        <div id="demandeur-view" class="view">
+            <form id="booking-form">
+                <label for="date">Date :</label>
+                <input type="date" id="date" name="date" required>
+                <label for="nom">Nom du Demandeur :</label>
+                <input type="text" id="nom" name="nom" readonly required>
+                <label for="objet">Objet de la Demande :</label>
+                <input type="text" id="objet" name="objet" required>
+                <label for="heureDebut">Heure de Début :</label>
+                <input type="time" id="heureDebut" name="heureDebut" required>
+                <label for="heureFin">Heure de Fin :</label>
+                <input type="time" id="heureFin" name="heureFin" required>
+                <label for="salle">Choix de la Salle de Réunion :</label>
+                <select id="salle" name="salle" required>
+                    <option value="">Sélectionnez une salle</option>
+                    <option value="utique">Salle de Réunion Utique</option>
+                    <option value="carthage">Salle de Réunion Carthage</option>
+                </select>
+                <button type="submit">Réserver la Salle</button>
+            </form>
+            <div class="my-requests">
+                <h2>Mes Demandes</h2>
+                <div id="requests-list-demandeur"></div>
             </div>
         </div>
-    </nav>
 
-    <!-- Login Modal -->
-    <div class="modal fade login-modal" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="loginModalLabel">Connexion</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="loginForm">
-                        <div class="mb-3">
-                            <label for="loginEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="loginEmail" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="loginPassword" class="form-label">Mot de passe</label>
-                            <input type="password" class="form-control" id="loginPassword" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Se connecter</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    </form>
-                </div>
+        <div id="admin-view" class="view">
+            <div class="requests-list">
+                <h2>Demande en Attente (Admin)</h2>
+                <button id="export-btn" class="export-button">Exporter les Demandes</button>
+                <div id="requests-list-admin"></div>
+            </div>
+        </div>
+
+        <div id="rh-view" class="view">
+            <div class="requests-list">
+                <h2>Demande Approuvée par Admin (RH)</h2>
+                <div id="requests-list-rh"></div>
             </div>
         </div>
     </div>
 
-    <section id="accueil" class="section-container hero-section text-center">
-        <div class="container">
-            <h1 data-lang-key="heroTitle">Département Amélioration Continue WKW</h1>
-            <h3 data-lang-key="heroSubtitle">L’amélioration continue est bien plus qu’une simple démarche; c’est le cœur battant de la performance industrielle moderne.</h3>
-            <div class="center-image">
-                <img src="https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q" alt="WKW Group Logo">
-            </div>
-        </div>
-    </section>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js';
+        import { getDatabase, ref, push, update, onValue } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-database.js';
+        import { getFirestore, collection, addDoc, updateDoc, doc, getDocs } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js';
 
-    <section id="percentageResult" class="section-container container" style="display: none;">
-        <div class="percentage-alert">
-            <h4 id="percentageTitle" class="mb-3"></h4>
-            <div class="percentage-circle">
-                <svg width="150" height="150">
-                    <defs>
-                        <linearGradient id="gradientStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color: #e63946;" />
-                            <stop offset="100%" style="stop-color: #457b9d;" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="75" cy="75" r="65" />
-                    <circle class="progress" cx="75" cy="75" r="65" />
-                </svg>
-                <p id="percentageValue" class="value"></p>
-            </div>
-        </div>
-    </section>
-
-    <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="videoModalLabel">Vidéo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <iframe id="videoPlayer" width="100%" height="300" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <section id="contact" class="section-container container" style="display: none;">
-        <div class="collapse" id="contactSection">
-            <div class="contact-form">
-                <h2 class="text-center mb-4" data-lang-key="contactTitle">Contactez-nous</h2>
-                <form id="contactForm">
-                    <div class="form-group">
-                        <label for="name" data-lang-key="nameLabel">Nom:</label>
-                        <input type="text" id="name" name="name" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email" data-lang-key="emailLabel">Email:</label>
-                        <input type="email" id="email" name="email" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="message" data-lang-key="messageLabel">Message:</label>
-                        <textarea id="message" name="message" class="form-control" rows="4" required></textarea>
-                    </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary" data-lang-key="sendButton">Envoyer</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <section id="contactList" class="section-container container" style="display: none;">
-        <h2 class="text-center mb-4">Messages Reçus</h2>
-        <div id="messagesContainer" class="row">
-            <!-- Messages will be dynamically inserted here -->
-        </div>
-    </section>
-
-    <footer data-lang-key="footer">
-        <span>© جميع الحقوق محفوظة WKW Amélioration Département</span>
-        <div class="gear-cluster">
-            <i class="fas fa-cog"></i>
-            <i class="fas fa-cog" style="font-size: 1.2rem; animation-direction: reverse;"></i>
-            <i class="fas fa-cog" style="font-size: 0.9rem;"></i>
-        </div>
-    </footer>
-
-    <script>
-        const translations = {
-            fr: { home: "Accueil", performance: "Performance", resources: "Ressources", contact: "Contact", messages: "Messages Reçus", nightMode: "Mode Nuit", heroTitle: "Département Amélioration Continue WKW", heroSubtitle: "L’amélioration continue est bien plus qu’une simple démarche; c’est le cœur battant de la performance industrielle moderne.", contactTitle: "Contactez-nous", nameLabel: "Nom:", emailLabel: "Email:", messageLabel: "Message:", sendButton: "Envoyer", footer: "© Tous droits réservés WKW Amélioration Département" },
-            ar: { home: "الرئيسية", performance: "الأداء", resources: "الموارد", contact: "اتصل بنا", messages: "الرسائل المستلمة", nightMode: "الوضع الليلي", heroTitle: "قسم التحسين المستمر WKW", heroSubtitle: "التحسين المستمر هو أكثر من مجرد نهج؛ إنه قلب الأداء الصناعي الحديث النابض.", contactTitle: "اتصل بنا", nameLabel: "الاسم:", emailLabel: "البريد الإلكتروني:", messageLabel: "الرسالة:", sendButton: "إرسال", footer: "© جميع الحقوق محفوظة قسم التحسين WKW" },
-            en: { home: "Home", performance: "Performance", resources: "Resources", contact: "Contact", messages: "Received Messages", nightMode: "Night Mode", heroTitle: "WKW Continuous Improvement Department", heroSubtitle: "Continuous improvement is more than just an approach; it’s the beating heart of modern industrial performance.", contactTitle: "Contact Us", nameLabel: "Name:", emailLabel: "Email:", messageLabel: "Message:", sendButton: "Send", footer: "© All rights reserved WKW Improvement Department" },
-            de: { home: "Startseite", performance: "Leistung", resources: "Ressourcen", contact: "Kontakt", messages: "Empfangene Nachrichten", nightMode: "Nachtmodus", heroTitle: "WKW Abteilung für kontinuierliche Verbesserung", heroSubtitle: "Kontinuierliche Verbesserung ist mehr als nur ein Ansatz; sie ist das schlagende Herz moderner industrieller Leistung.", contactTitle: "Kontaktieren Sie uns", nameLabel: "Name:", emailLabel: "E-Mail:", messageLabel: "Nachricht:", sendButton: "Senden", footer: "© Alle Rechte vorbehalten WKW Verbesserungsabteilung" }
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwp0prUZEWUow2vlzTH2iJ59oIsf5qMr8",
+            authDomain: "salle-de-reunion-381fc.firebaseapp.com",
+            databaseURL: "https://salle-de-reunion-381fc-default-rtdb.firebaseio.com",
+            projectId: "salle-de-reunion-381fc",
+            storageBucket: "salle-de-reunion-381fc.firebasestorage.app",
+            messagingSenderId: "1008205636137",
+            appId: "1:1008205636137:web:8df5e78408075f481ab238",
+            measurementId: "G-41P4C3NN5D"
         };
 
-        function changeLanguage(lang) {
-            document.documentElement.lang = lang;
-            document.body.setAttribute('lang', lang);
-            document.querySelectorAll('[data-lang-key]').forEach(element => {
-                const key = element.getAttribute('data-lang-key');
-                if (translations[lang][key]) element.innerHTML = translations[lang][key];
-            });
-            document.querySelector('.navbar-brand').textContent = "WKW AUTOMOTIVE";
-            try {
-                localStorage.setItem('language', lang);
-            } catch (e) {
-                console.warn('localStorage blocked:', e);
-            }
-            showSection('accueil');
-        }
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const firestore = getFirestore(app);
+        let currentUser = null;
+        let currentRole = 'demandeur';
+        let requestsData = [];
 
-        function getLocalStorage(key, defaultValue) {
-            try {
-                return localStorage.getItem(key) || defaultValue;
-            } catch (e) {
-                console.warn('localStorage blocked:', e);
-                return defaultValue;
-            }
-        }
-
-        function showSection(sectionId) {
-            document.querySelectorAll('.section-container').forEach(section => {
-                section.style.display = 'none';
-            });
-            const targetSection = document.getElementById(sectionId);
-            if (targetSection) {
-                targetSection.style.display = 'block';
-                targetSection.scrollIntoView({ behavior: 'smooth' });
-            }
-            const collapsibleSections = document.querySelectorAll('.collapse.show');
-            collapsibleSections.forEach(section => {
-                new bootstrap.Collapse(section).hide();
-            });
-        }
-
-        function toggleContact() {
-            const contactSection = document.getElementById('contactSection');
-            if (contactSection) {
-                new bootstrap.Collapse(contactSection, { toggle: true });
-            }
-        }
-
-        function showPercentage(title, percentage) {
-            const section = document.getElementById('percentageResult');
-            const percentageValue = document.getElementById('percentageValue');
-            const progressCircle = document.querySelector('.percentage-circle .progress');
-            const numericValue = parseFloat(percentage);
-
-            document.getElementById('percentageTitle').textContent = title;
-            percentageValue.textContent = percentage + '%';
-
-            if (numericValue <= 74) percentageValue.style.color = 'var(--red-color)';
-            else if (numericValue <= 89) percentageValue.style.color = 'var(--orange-color)';
-            else percentageValue.style.color = 'var(--green-color)';
-
-            const dashArray = (numericValue / 100) * 471;
-            progressCircle.style.strokeDasharray = `${dashArray} 471`;
-
-            showSection('percentageResult');
-        }
-
-        function initFirebase() {
-            const firebaseConfig = {
-                apiKey: "AIzaSyCfRyHXoHE1dftV9YI4bIpS9Bm10MLZTLE",
-                authDomain: "wkw1-44590.firebaseapp.com",
-                projectId: "wkw1-44590",
-                storageBucket: "wkw1-44590.firebasestorage.app",
-                messagingSenderId: "176458799163",
-                appId: "1:176458799163:web:5002621bc1362a6e46e41e",
-                measurementId: "G-B1G2FBTDED",
-                databaseURL: "https://wkw1-44590-default-rtdb.firebaseio.com/"
-            };
-
-            try {
-                const app = firebase.initializeApp(firebaseConfig);
-                const analytics = firebase.getAnalytics(app);
-                const database = firebase.getDatabase(app);
-                const messaging = firebase.getMessaging(app);
-                window.database = database;
-                window.messaging = messaging;
-                console.log('Firebase initialized successfully');
-
-                // Contact form submission
-                document.getElementById('contactForm').addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const name = document.getElementById('name').value;
-                    const email = document.getElementById('email').value;
-                    const message = document.getElementById('message').value;
-
-                    const contactRef = firebase.ref(database, 'contacts/' + Date.now());
-                    firebase.set(contactRef, {
-                        name: name,
-                        email: email,
-                        message: message,
-                        timestamp: new Date().toISOString()
-                    })
-                    .then(() => {
-                        console.log('Message saved:', { name, email, message });
-                        alert('Message enregistré dans Firebase avec succès!');
-                        this.reset();
-                    })
-                    .catch((error) => {
-                        console.error('Error saving message:', error);
-                        alert('Erreur lors de l\'enregistrement: ' + error.message);
+        const requestsRef = ref(db, 'requests');
+        onValue(requestsRef, (snapshot) => {
+            requestsData = [];
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => {
+                    requestsData.push({
+                        key: child.key,
+                        ...child.val()
                     });
                 });
-
-                // Messages retrieval
-                const messagesContainer = document.getElementById('messagesContainer');
-                const messagesRef = firebase.ref(database, 'contacts');
-                firebase.onValue(messagesRef, (snapshot) => {
-                    console.log('Raw snapshot:', snapshot);
-                    console.log('Snapshot value:', snapshot.val());
-                    messagesContainer.innerHTML = '';
-                    const messages = snapshot.val();
-                    if (messages) {
-                        console.log('Messages found:', messages);
-                        Object.keys(messages).forEach((key) => {
-                            const msg = messages[key];
-                            console.log('Processing message:', msg);
-                            const messageCard = `
-                                <div class="col-md-4 message-card">
-                                    <h5>${msg.name || 'N/A'}</h5>
-                                    <p><strong>Email:</strong> ${msg.email || 'N/A'}</p>
-                                    <p><strong>Message:</strong> ${msg.message || 'N/A'}</p>
-                                    <p><small><strong>Envoyé le:</strong> ${msg.timestamp ? new Date(msg.timestamp).toLocaleString() : 'N/A'}</small></p>
-                                </div>
-                            `;
-                            messagesContainer.innerHTML += messageCard;
-                        });
-                    } else {
-                        console.log('No messages in database');
-                        messagesContainer.innerHTML = '<p class="text-center">Aucun message pour le moment.</p>';
-                    }
-                }, (error) => {
-                    console.error('Error fetching messages:', error);
-                    messagesContainer.innerHTML = '<p class="text-center">Erreur lors du chargement des messages: ' + error.message + '</p>';
-                });
-
-                // Push notification setup
-                setupPushNotifications(messaging, database);
-            } catch (error) {
-                console.error('Firebase initialization failed:', error);
-                document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non initialisé.</p>';
             }
-        }
-
-        function setupPushNotifications(messaging, database) {
-            // Request permission for notifications
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    console.log('Notification permission granted.');
-                    // Get the FCM token
-                    firebase.getToken(messaging, {
-                        vapidKey: 'iKo5BdcY5fwHKKhXx1s6Ff0JguQzH7LoElV19OQvfto'
-                    }).then((currentToken) => {
-                        if (currentToken) {
-                            console.log('FCM Token:', currentToken);
-                            // Save the token to the database
-                            const tokenRef = firebase.ref(database, 'pushTokens/' + currentToken);
-                            firebase.set(tokenRef, {
-                                token: currentToken,
-                                timestamp: new Date().toISOString()
-                            }).then(() => {
-                                console.log('Push token saved to database.');
-                            }).catch(error => {
-                                console.error('Error saving push token:', error);
-                            });
-                        } else {
-                            console.log('No FCM token available. Request permission to generate one.');
-                        }
-                    }).catch(error => {
-                        console.error('Error retrieving FCM token:', error);
-                    });
-
-                    // Handle incoming messages (foreground)
-                    firebase.onMessage(messaging, (payload) => {
-                        console.log('Message received:', payload);
-                        const notificationTitle = payload.notification.title;
-                        const notificationOptions = {
-                            body: payload.notification.body,
-                            icon: 'https://media.licdn.com/dms/image/v2/C510BAQFv4NwvhYRq8Q/company-logo_200_200/company-logo_200_200/0/1631351838133?e=2147483647&v=beta&t=pE5-TQRX2fd9oIfzQypoBLterLoj-X4wOnC3C8MMI4Q'
-                        };
-                        new Notification(notificationTitle, notificationOptions);
-                    });
+            if (currentUser && document.getElementById(currentRole + '-view').classList.contains('active')) {
+                if (currentRole === 'demandeur') {
+                    loadMyRequests();
                 } else {
-                    console.log('Notification permission denied.');
+                    loadRequests(currentRole === 'admin' ? 'pending' : 'to_rh');
                 }
-            }).catch(error => {
-                console.error('Error requesting notification permission:', error);
+            }
+        }, (error) => {
+            showError('Erreur de chargement des données : ' + error.message, 'main-content');
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            console.log('Auth state changed:', user ? user.email : 'No user');
+            if (user) {
+                const email = user.email;
+                const username = email.split('@')[0].toLowerCase(); // Lowercase for Firestore consistency
+                let role = 'demandeur';
+                const emailLower = email.toLowerCase();
+                if (emailLower === 'walid.gharbi@wkw-group.com') {
+                    role = 'admin';
+                } else if (emailLower === 'bedis.sghair@wkw-group.com') {
+                    role = 'rh';
+                }
+                currentUser = { role, username, email };
+                console.log('Rôle assigné:', role, 'pour l\'email:', email, 'username:', username);
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('logout-btn').style.display = 'inline-block';
+                document.getElementById('role-switcher').style.display = 'block';
+                document.querySelectorAll('.role-switcher button').forEach(btn => {
+                    btn.disabled = btn.id !== `${role}-btn`;
+                    btn.classList.toggle('active', btn.id === `${role}-btn`);
+                    btn.replaceWith(btn.cloneNode(true));
+                    const newBtn = document.querySelector(`#${btn.id}`);
+                    newBtn.addEventListener('click', () => switchRole(newBtn.id.replace('-btn', '')));
+                });
+                if (role === 'demandeur') {
+                    document.getElementById('nom').value = username;
+                }
+                switchRole(role);
+            } else {
+                currentUser = null;
+                document.getElementById('main-content').style.display = 'none';
+                document.getElementById('login-section').style.display = 'block';
+                document.getElementById('logout-btn').style.display = 'none';
+                document.getElementById('role-switcher').style.display = 'none';
+                document.getElementById('login-form').reset();
+                document.getElementById('login-error').style.display = 'none';
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                errorDiv.style.display = 'none';
+            } catch (error) {
+                errorDiv.textContent = error.message.includes('auth/wrong-password') ? 'Mot de passe incorrect.' : error.message;
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', async function() {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                showError('Erreur lors de la déconnexion : ' + error.message, 'main-content');
+            }
+        });
+
+        document.getElementById('export-btn').addEventListener('click', async function() {
+            if (!currentUser) {
+                showError('Vous devez être connecté pour exporter les données.', 'admin-view');
+                return;
+            }
+            try {
+                const querySnapshot = await getDocs(collection(firestore, 'requests'));
+                const csvData = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return `"${data.date}","${data.nom}","${data.objet}","${data.heureDebut}","${data.heureFin}","${data.salle}"`;
+                });
+                const csvContent = 'data:text/csv;charset=utf-8,' +
+                    '"Date","Nom du Demandeur","Objet de la Demande","Heure de Début","Heure de Fin","Choix de la Salle de Réunion"\n' +
+                    csvData.join('\n');
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', `booking_requests_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                showError('Erreur lors de l\'exportation : ' + (error.message.includes('permission') ? 'Permissions insuffisantes.' : error.message), 'admin-view');
+            }
+        });
+
+        document.getElementById('booking-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!currentUser || currentUser.role !== 'demandeur') {
+                showError('Vous devez être connecté en tant que demandeur.', 'demandeur-view');
+                return;
+            }
+            const formData = new FormData(this);
+            const request = {
+                date: formData.get('date'),
+                nom: currentUser.username, // Lowercase username
+                objet: formData.get('objet'),
+                heureDebut: formData.get('heureDebut'),
+                heureFin: formData.get('heureFin'),
+                salle: formData.get('salle'),
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            };
+            console.log('Submitting request:', request, 'for user:', currentUser.email, 'auth.email.split("@")[0]:', currentUser.email.split('@')[0]);
+            try {
+                const rtPush = await push(requestsRef, request);
+                await addDoc(collection(firestore, 'requests'), { ...request, rtKey: rtPush.key });
+                showSuccess('Demande soumise ! Elle attend l\'approbation de l\'admin.', 'booking-form');
+                this.reset();
+                document.getElementById('nom').value = currentUser.username;
+            } catch (error) {
+                console.error('Submission error:', error);
+                showError('Erreur lors de la soumission : ' + (error.message.includes('PERMISSION_DENIED') ? 'Permissions insuffisantes.' : error.message), 'booking-form');
+            }
+        });
+
+        function switchRole(role) {
+            if (currentUser.role !== role) return;
+            currentRole = role;
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(role + '-view').classList.add('active');
+            document.querySelectorAll('.role-switcher button').forEach(b => b.classList.remove('active'));
+            document.getElementById(role + '-btn').classList.add('active');
+            if (role === 'demandeur') {
+                loadMyRequests();
+            } else {
+                loadRequests(role === 'admin' ? 'pending' : 'to_rh');
+            }
+        }
+
+        function loadMyRequests() {
+            if (!currentUser) return;
+            const filtered = requestsData.filter(r => r.nom === currentUser.username);
+            const container = document.getElementById('requests-list-demandeur');
+            container.innerHTML = '';
+            filtered.forEach(req => {
+                const div = document.createElement('div');
+                div.className = 'request-item';
+                div.innerHTML = `
+                    <h3>${req.objet}</h3>
+                    <p>Date: ${req.date} | Salle: ${req.salle} | ${req.heureDebut} - ${req.heureFin}</p>
+                    <span class="status ${req.status}">${getStatusText(req.status)}</span>
+                `;
+                container.appendChild(div);
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initial page setup
-            showSection('accueil');
-            if (typeof firebase !== 'undefined' && firebase.initializeApp) {
-                initFirebase();
-            } else {
-                console.error('Firebase script not loaded');
-                document.getElementById('messagesContainer').innerHTML = '<p class="text-center">Erreur: Firebase non chargé. Veuillez vérifier votre connexion internet.</p>';
-            }
-
-            // Language and night mode setup
-            const savedLang = getLocalStorage('language', 'fr');
-            changeLanguage(savedLang);
-
-            const toggleButton = document.getElementById('nightModeToggle');
-            const body = document.body;
-            toggleButton.addEventListener('click', () => {
-                body.classList.toggle('night-mode');
-                const isNightMode = body.classList.contains('night-mode');
-                toggleButton.textContent = isNightMode ? 'Mode Jour' : 'Mode Nuit';
-                try {
-                    localStorage.setItem('nightMode', isNightMode ? 'enabled' : 'disabled');
-                } catch (e) {
-                    console.warn('localStorage blocked:', e);
-                }
+        function loadRequests(status) {
+            if (!currentUser) return;
+            const filtered = requestsData.filter(r => r.status === status);
+            const container = document.getElementById(`requests-list-${currentRole}`);
+            container.innerHTML = '';
+            filtered.forEach(req => {
+                const div = document.createElement('div');
+                div.className = 'request-item';
+                div.innerHTML = `
+                    <h3>${req.objet} - ${req.nom}</h3>
+                    <p>Date: ${req.date} | Salle: ${req.salle} | ${req.heureDebut} - ${req.heureFin}</p>
+                    <span class="status ${req.status}">${getStatusText(req.status)}</span>
+                    <div class="action-buttons">
+                        <button data-key="${req.key}" data-action="approved">Approuver</button>
+                        <button data-key="${req.key}" data-action="rejected">Rejeter</button>
+                    </div>
+                `;
+                container.appendChild(div);
             });
-
-            if (getLocalStorage('nightMode', 'disabled') === 'enabled') {
-                body.classList.add('night-mode');
-                toggleButton.textContent = 'Mode Jour';
-            }
-
-            // Sidebar setup
-            const sidebar = document.getElementById('sidebar');
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const closeSidebar = document.getElementById('closeSidebar');
-
-            sidebarToggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                sidebar.classList.toggle('active');
-            });
-
-            closeSidebar.addEventListener('click', () => {
-                sidebar.classList.remove('active');
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target) && sidebar.classList.contains('active')) {
-                    sidebar.classList.remove('active');
-                }
-            });
-
-            // Authentication setup
-            let isAuthenticatedPerformance = false;
-            let isAuthenticatedMessages = false;
-            let loginCallback = null;
-
-            const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-            const loginForm = document.getElementById('loginForm');
-            const loginEmail = document.getElementById('loginEmail');
-            const loginPassword = document.getElementById('loginPassword');
-
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!firebase.getAuth) {
-                    alert('Firebase non initialisé. Veuillez vérifier votre connexion.');
-                    return;
-                }
-                const email = loginEmail.value;
-                const password = loginPassword.value;
-
-                try {
-                    const auth = firebase.getAuth();
-                    await firebase.signInWithEmailAndPassword(auth, email, password);
-                    loginModal.hide();
-                    if (loginCallback) {
-                        loginCallback(true);
-                    }
-                } catch (error) {
-                    console.error('Authentication error:', error);
-                    alert('Échec de l\'authentification: ' + error.message);
-                }
-            });
-
-            const performanceDropdown = document.getElementById('performanceDropdown');
-            performanceDropdown.addEventListener('mousedown', (e) => {
-                if (!isAuthenticatedPerformance) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    document.getElementById('loginModalLabel').textContent = translations[document.documentElement.lang].performance + ' - Connexion';
-                    loginModal.show();
-                    loginCallback = (success) => {
-                        if (success) {
-                            isAuthenticatedPerformance = true;
-                            const dropdown = new bootstrap.Dropdown(performanceDropdown);
-                            dropdown.toggle();
-                        }
-                    };
-                }
-            });
-
-            document.querySelectorAll('.percentage-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (isAuthenticatedPerformance) {
-                        const title = item.getAttribute('data-title');
-                        const percentage = item.getAttribute('data-percentage');
-                        showPercentage(title, percentage);
-                    }
+            document.querySelectorAll('.action-buttons button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const key = button.dataset.key;
+                    const action = button.dataset.action;
+                    updateStatus(key, action);
                 });
             });
+        }
 
-            async function handleMessagesToggle() {
+        async function updateStatus(key, action) {
+            if (!currentUser) {
+                showError('Vous devez être connecté.', currentRole + '-view');
+                return;
+            }
+            let newStatus = null;
+            if (action === 'approved') {
+                newStatus = currentRole === 'admin' ? 'to_rh' : 'approved';
+            } else if (action === 'rejected') {
+                newStatus = 'rejected';
+            }
+            if (newStatus) {
+                console.log(`Updating status for key: ${key} to: ${newStatus} by: ${currentUser.email}`);
                 try {
-                    if (!isAuthenticatedMessages) {
-                        document.getElementById('loginModalLabel').textContent = translations[document.documentElement.lang].messages + ' - Connexion';
-                        loginModal.show();
-                        loginCallback = (success) => {
-                            if (success) {
-                                isAuthenticatedMessages = true;
-                                showSection('contactList');
-                                console.log('Messages section unlocked');
-                            } else {
-                                showSection('accueil');
-                            }
-                        };
+                    await update(ref(db, `requests/${key}`), { status: newStatus });
+                    const querySnapshot = await getDocs(collection(firestore, 'requests'));
+                    const docRef = querySnapshot.docs.find(doc => doc.data().rtKey === key);
+                    if (docRef) {
+                        await updateDoc(doc(firestore, 'requests', docRef.id), { status: newStatus });
                     } else {
-                        showSection('contactList');
+                        console.warn(`No Firestore document found for rtKey: ${key}`);
                     }
+                    showSuccess(action === 'approved' ? 'Approuvée !' : 'Rejetée !', currentRole + '-view');
                 } catch (error) {
-                    console.error('Error in handleMessagesToggle:', error);
-                    alert('Erreur: ' + error.message);
-                    showSection('accueil');
+                    console.error('Update error:', error);
+                    showError('Erreur lors de la mise à jour : ' + (error.message.includes('PERMISSION_DENIED') ? 'Permissions insuffisantes.' : error.message), currentRole + '-view');
                 }
             }
+        }
 
-            document.getElementById('messagesToggle').addEventListener('click', (e) => {
-                e.preventDefault();
-                handleMessagesToggle();
-            });
+        function getStatusText(status) {
+            const texts = {
+                pending: 'En Attente',
+                to_rh: 'En Attente RH',
+                approved: 'Approuvée',
+                rejected: 'Rejetée'
+            };
+            return texts[status] || status;
+        }
 
-            document.getElementById('loginModal').addEventListener('show.bs.modal', () => {
-                loginForm.reset();
-            });
+        function showError(message, containerId) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.getElementById(containerId).prepend(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
 
-            document.getElementById('loginModal').addEventListener('hidden.bs.modal', () => {
-                loginForm.reset();
-                loginCallback = null;
-            });
-
-            document.getElementById('contactToggle').addEventListener('click', function(e) {
-                e.preventDefault();
-                toggleContact();
-            });
-
-            document.querySelectorAll('[data-bs-toggle="modal"]').forEach(link => {
-                link.addEventListener('click', e => {
-                    const videoSrc = e.target.getAttribute('data-video');
-                    document.getElementById('videoPlayer').src = videoSrc;
-                });
-            });
-        });
+        function showSuccess(message, containerId) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.getElementById(containerId).prepend(successDiv);
+            setTimeout(() => successDiv.remove(), 5000);
+        }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
