@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface Demandeur - Gestion des Salles de Réunion</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        .navbar { background-color: #333; overflow: hidden; }
+        .navbar a { float: left; color: white; text-align: center; padding: 14px 16px; text-decoration: none; font-size: 17px; }
+        .navbar a:hover { background-color: #ddd; color: black; }
+        .navbar a.active { background-color: #04AA6D; color: white; }
+        .content { padding: 20px; display: none; }
+        .content.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        input[readonly] { background-color: #f9f9f9; }
+        button { background-color: #04AA6D; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #039855; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .room-info { margin-top: 20px; }
+        .room-info h3 { margin-bottom: 10px; }
+        .export-btn { background-color: #337ab7; color: white; padding: 10px 15px; margin-bottom: 20px; }
+        .export-btn:hover { background-color: #286090; }
+        .status-approved { color: green; font-weight: bold; }
+        .status-rejected { color: red; font-weight: bold; }
+        .status-pending { color: orange; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="#" onclick="showSection('salle-reunion')">Salle de Réunion</a>
+        <a href="#" onclick="showSection('reserver-salle')">Réserver Salle de Réunion</a>
+        <a href="#" onclick="showSection('mes-demandes')">Mes Demandes</a>
+    </div>
+
+    <div id="salle-reunion" class="content">
+        <h2>Salle de Réunion</h2>
+        <p>Réservations approuvées :</p>
+        <button class="export-btn" onclick="exportToExcel('salle-reunion-table')">Exporter en Excel</button>
+        <table id="salle-reunion-table">
+            <thead>
+                <tr>
+                    <th>Nom du Demandeur</th>
+                    <th>Service</th>
+                    <th>Salle</th>
+                    <th>Type</th>
+                    <th>Date Début</th>
+                    <th>Heure Début</th>
+                    <th>Date Fin</th>
+                    <th>Heure Fin</th>
+                    <th>Durée</th>
+                </tr>
+            </thead>
+            <tbody id="salle-reunion-body"></tbody>
+        </table>
+    </div>
+
+    <div id="reserver-salle" class="content">
+        <h2>Réserver une Salle de Réunion</h2>
+        <form id="reservation-form">
+            <div class="form-group">
+                <label for="nom-demandeur">Nom du Demandeur</label>
+                <input type="text" id="nom-demandeur" required>
+            </div>
+            <div class="form-group">
+                <label for="service-demandeur">Service Demandeur</label>
+                <input type="text" id="service-demandeur" required>
+            </div>
+            <div class="form-group">
+                <label for="salle">Salle de Réunion</label>
+                <select id="salle" required>
+                    <option value="Salle Unique">Salle Unique</option>
+                    <option value="Salle Chartage">Salle Chartage</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="type-reservation">Type de Réservation</label>
+                <select id="type-reservation" required>
+                    <option value="heure">Par Heure</option>
+                    <option value="minute">Par Minute</option>
+                    <option value="jour">Par Jour</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="date-debut">Date de Début</label>
+                <input type="date" id="date-debut" required>
+            </div>
+            <div class="form-group">
+                <label for="heure-debut">Heure de Début</label>
+                <input type="time" id="heure-debut" required>
+            </div>
+            <div class="form-group">
+                <label for="date-fin">Date de Fin</label>
+                <input type="date" id="date-fin" required>
+            </div>
+            <div class="form-group">
+                <label for="heure-fin">Heure de Fin</label>
+                <input type="time" id="heure-fin" required>
+            </div>
+            <div class="form-group">
+                <label for="duree">Durée Besoin</label>
+                <input type="number" id="duree" min="0" readonly>
+                <span id="duree-unit">heures</span>
+            </div>
+            <button type="submit">Réserver</button>
+        </form>
+    </div>
+
+    <div id="mes-demandes" class="content">
+        <h2>Mes Demandes</h2>
+        <button class="export-btn" onclick="exportToExcel('demandes-table')">Exporter en Excel</button>
+        <table id="demandes-table">
+            <thead>
+                <tr>
+                    <th>Nom du Demandeur</th>
+                    <th>Service</th>
+                    <th>Salle</th>
+                    <th>Type</th>
+                    <th>Date Début</th>
+                    <th>Heure Début</th>
+                    <th>Date Fin</th>
+                    <th>Heure Fin</th>
+                    <th>Durée</th>
+                    <th>Statut</th>
+                    <th>Commentaire</th>
+                </tr>
+            </thead>
+            <tbody id="demandes-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Show section based on navbar click
+        function showSection(sectionId) {
+            document.querySelectorAll('.content').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.navbar a').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`.navbar a[onclick="showSection('${sectionId}')"]`).classList.add('active');
+        }
+
+        // Update duration unit and recalculate duration
+        function updateDurationUnitAndCalculate() {
+            const type = document.getElementById('type-reservation').value;
+            const unit = type === 'heure' ? 'heures' : type === 'minute' ? 'minutes' : 'jours';
+            document.getElementById('duree-unit').textContent = unit;
+            calculateDuration();
+        }
+
+        // Calculate duration based on start and end date/time
+        function calculateDuration() {
+            const dateDebut = document.getElementById('date-debut').value;
+            const heureDebut = document.getElementById('heure-debut').value;
+            const dateFin = document.getElementById('date-fin').value;
+            const heureFin = document.getElementById('heure-fin').value;
+            const type = document.getElementById('type-reservation').value;
+            const dureeInput = document.getElementById('duree');
+
+            if (dateDebut && heureDebut && dateFin && heureFin) {
+                const start = new Date(`${dateDebut}T${heureDebut}`);
+                const end = new Date(`${dateFin}T${heureFin}`);
+                if (end >= start) {
+                    const diffMs = end - start;
+                    let duration;
+                    if (type === 'heure') {
+                        duration = Math.round(diffMs / (1000 * 60 * 60));
+                    } else if (type === 'minute') {
+                        duration = Math.round(diffMs / (1000 * 60));
+                    } else {
+                        duration = Math.round(diffMs / (1000 * 60 * 60 * 24));
+                    }
+                    dureeInput.value = duration >= 0 ? duration : 0;
+                } else {
+                    dureeInput.value = 0;
+                }
+            } else {
+                dureeInput.value = 0;
+            }
+        }
+
+        // Event listeners for date and time inputs
+        ['date-debut', 'heure-debut', 'date-fin', 'heure-fin'].forEach(id => {
+            document.getElementById(id).addEventListener('change', calculateDuration);
+        });
+
+        // Event listener for reservation type change
+        document.getElementById('type-reservation').addEventListener('change', updateDurationUnitAndCalculate);
+
+        // Load and render demands
+        function renderDemandes() {
+            const demandes = JSON.parse(localStorage.getItem('demandes') || '[]');
+            const tableBody = document.getElementById('demandes-body');
+            tableBody.innerHTML = '';
+            demandes.forEach(demande => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${demande.nom}</td>
+                    <td>${demande.service}</td>
+                    <td>${demande.salle}</td>
+                    <td>${demande.type}</td>
+                    <td>${demande.dateDebut}</td>
+                    <td>${demande.heureDebut}</td>
+                    <td>${demande.dateFin}</td>
+                    <td>${demande.heureFin}</td>
+                    <td>${demande.duree}</td>
+                    <td class="${demande.statut === 'Approuvé' ? 'status-approved' : demande.statut === 'Rejeté' ? 'status-rejected' : 'status-pending'}">${demande.statut}</td>
+                    <td>${demande.commentaire || ''}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Render approved demands in Salle de Réunion
+            const salleBody = document.getElementById('salle-reunion-body');
+            salleBody.innerHTML = '';
+            demandes.filter(d => d.statut === 'Approuvé').forEach(demande => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${demande.nom}</td>
+                    <td>${demande.service}</td>
+                    <td>${demande.salle}</td>
+                    <td>${demande.type}</td>
+                    <td>${demande.dateDebut}</td>
+                    <td>${demande.heureDebut}</td>
+                    <td>${demande.dateFin}</td>
+                    <td>${demande.heureFin}</td>
+                    <td>${demande.duree}</td>
+                `;
+                salleBody.appendChild(row);
+            });
+        }
+
+        // Handle form submission
+        document.getElementById('reservation-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nom = document.getElementById('nom-demandeur').value;
+            const service = document.getElementById('service-demandeur').value;
+            const salle = document.getElementById('salle').value;
+            const type = document.getElementById('type-reservation').value;
+            const dateDebut = document.getElementById('date-debut').value;
+            const heureDebut = document.getElementById('heure-debut').value;
+            const dateFin = document.getElementById('date-fin').value;
+            const heureFin = document.getElementById('heure-fin').value;
+            const duree = document.getElementById('duree').value;
+            const unit = type === 'heure' ? 'heures' : type === 'minute' ? 'minutes' : 'jours';
+
+            const demandes = JSON.parse(localStorage.getItem('demandes') || '[]');
+            const newDemande = {
+                id: demandes.length + 1,
+                nom,
+                service,
+                salle,
+                type,
+                dateDebut,
+                heureDebut,
+                dateFin,
+                heureFin,
+                duree: `${duree} ${unit}`,
+                statut: 'En attente Admin',
+                commentaire: ''
+            };
+            demandes.push(newDemande);
+            localStorage.setItem('demandes', JSON.stringify(demandes));
+
+            this.reset();
+            document.getElementById('duree-unit').textContent = 'heures';
+            document.getElementById('duree').value = 0;
+            showSection('mes-demandes');
+            renderDemandes();
+        });
+
+        // Export table to Excel
+        function exportToExcel(tableId) {
+            const table = document.getElementById(tableId);
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Demandes" });
+            XLSX.writeFile(wb, `${tableId === 'demandes-table' ? 'mes_demandes' : 'salle_reunion'}.xlsx`);
+        }
+
+        // Initialize page
+        renderDemandes();
+        showSection('salle-reunion');
+    </script>
+</body>
+</html>
