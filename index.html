@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WKW Automotive Tunisie - Système de Réservation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <style>
         body {
             background-color: #f3f4f6;
@@ -208,6 +209,20 @@
         .btn-reject:hover {
             background-color: #dc2626;
         }
+        .export-button {
+            background-color: #10b981;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 1rem;
+        }
+        .export-button:hover {
+            background-color: #059669;
+        }
         @media (max-width: 768px) {
             .navbar .hamburger {
                 display: block;
@@ -365,6 +380,7 @@
             </div>
             <div id="all-demandes-admin" class="section">
                 <h2>Toutes les Demandes (Admin)</h2>
+                <button class="export-button" onclick="exportToExcel('admin-requests-table', 'admin-demandes.xlsx')">Exporter vers Excel</button>
                 <table id="admin-requests-table">
                     <thead>
                         <tr>
@@ -385,6 +401,7 @@
             </div>
             <div id="all-demandes-rh" class="section">
                 <h2>Toutes les Demandes (RH)</h2>
+                <button class="export-button" onclick="exportToExcel('rh-requests-table', 'rh-demandes.xlsx')">Exporter vers Excel</button>
                 <table id="rh-requests-table">
                     <thead>
                         <tr>
@@ -410,7 +427,7 @@
         // Import Firebase scripts
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-        import { getDatabase, ref, push, onValue, update } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+        import { getDatabase, ref, push, onValue, update, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -790,6 +807,38 @@
             }
         };
 
+        // Check for overlap
+        async function checkOverlap(date, heureDebut, heureFin, salle) {
+            const allRequestsSnapshot = await get(ref(db, 'requests'));
+            const allRequests = allRequestsSnapshot.val();
+            if (!allRequests) return false;
+
+            for (const userId in allRequests) {
+                for (const requestId in allRequests[userId]) {
+                    const request = allRequests[userId][requestId];
+                    if (request.statut === "approuve" && request.date === date && request.salle === salle) {
+                        // Convert times to minutes since midnight
+                        const requestStartMin = timeToMinutes(request.heureDebut);
+                        const requestEndMin = timeToMinutes(request.heureFin);
+                        const newStartMin = timeToMinutes(heureDebut);
+                        const newEndMin = timeToMinutes(heureFin);
+
+                        // Check overlap
+                        if (Math.max(requestStartMin, newStartMin) < Math.min(requestEndMin, newEndMin)) {
+                            return true; // Overlap found
+                        }
+                    }
+                }
+            }
+            return false; // No overlap
+        }
+
+        // Helper to convert "HH:MM" to minutes
+        function timeToMinutes(time) {
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
         // Reservation form submission for demandeur
         if (document.getElementById('reservation-form')) {
             document.getElementById("reservation-form").addEventListener("submit", async (e) => {
@@ -810,6 +859,15 @@
 
                 if (heureDebut >= heureFin) {
                     errorMessage.textContent = "L'heure de fin doit être postérieure à l'heure de début.";
+                    errorMessage.style.display = "block";
+                    successMessage.style.display = "none";
+                    return;
+                }
+
+                // Check for overlap
+                const isOverlapping = await checkOverlap(date, heureDebut, heureFin, salle);
+                if (isOverlapping) {
+                    errorMessage.textContent = "Cette date et heure sont déjà prises pour cette salle. Veuillez changer la date ou l'heure.";
                     errorMessage.style.display = "block";
                     successMessage.style.display = "none";
                     return;
@@ -847,6 +905,13 @@
                 }
             });
         }
+
+        // Export table to Excel
+        window.exportToExcel = function(tableId, fileName) {
+            const table = document.getElementById(tableId);
+            const wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"});
+            XLSX.writeFile(wb, fileName);
+        };
 
         // Login logic
         document.getElementById("login-button").addEventListener("click", async () => {
