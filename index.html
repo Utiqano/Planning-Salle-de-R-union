@@ -1,4 +1,4 @@
-​<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -218,30 +218,37 @@
             color: #065f46;
         }
 
-        table {
+        .compact-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
             background-color: var(--card-bg);
+            font-size: 0.875rem;
+            line-height: 1.4;
         }
 
-        th, td {
-            padding: 1rem;
+        .compact-table th,
+        .compact-table td {
+            padding: 0.5rem 0.75rem;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        th {
+        .compact-table th {
             background-color: #f9fafb;
             color: var(--text-color);
             font-weight: 700;
         }
 
-        td {
+        .compact-table td {
             color: var(--text-color);
         }
 
-        tr {
+        .compact-table tr {
             animation: slideInLeft 0.5s ease-out;
         }
 
@@ -353,6 +360,11 @@
 
         .modal-content p {
             margin-bottom: 0.5rem;
+            display: none;
+        }
+
+        .modal-content p.visible {
+            display: block;
         }
 
         .close-modal {
@@ -416,13 +428,16 @@
                 margin: 0.5rem 0;
                 text-align: center;
             }
-            table {
+            .compact-table {
                 display: block;
                 overflow-x: auto;
                 white-space: nowrap;
             }
-            th, td {
-                min-width: 120px;
+            .compact-table th,
+            .compact-table td {
+                min-width: 100px;
+                padding: 0.4rem 0.6rem;
+                font-size: 0.75rem;
             }
             .form-group {
                 margin-bottom: 1rem;
@@ -476,6 +491,11 @@
             .modal-content {
                 padding: 1rem;
                 width: 95%;
+            }
+            .compact-table th,
+            .compact-table td {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.7rem;
             }
         }
 
@@ -549,7 +569,7 @@
                 <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
                     <button class="toggle-view-button" onclick="toggleView('calendar')">Vue Calendrier</button>
                     <button class="toggle-view-button" onclick="toggleView('table')">Vue Tableau</button>
-                    <button class="export-button" onclick="exportPlanningToExcel()">Exporter vers Excel</button>
+                    <button class="export-button" onclick="exportPlanningToExcel()" id="export-planning-button">Exporter vers Excel</button>
                     <div class="room-filter">
                         <select id="room-filter" onchange="filterCalendarEvents()">
                             <option value="all">Toutes les Salles</option>
@@ -561,26 +581,14 @@
                 <div id="calendar" style="display: none;">
                     <div class="loading-spinner" id="calendar-loading"></div>
                 </div>
-                <table id="planning-table" style="display: table;">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Demandeur</th>
-                            <th>Service</th>
-                            <th>Cause</th>
-                            <th>Durée</th>
-                            <th>Heure Début</th>
-                            <th>Heure Fin</th>
-                            <th>Salle</th>
-                            <th>Statut</th>
-                        </tr>
-                    </thead>
+                <table id="planning-table" class="compact-table" style="display: table;">
+                    <thead id="planning-table-head"></thead>
                     <tbody id="planning-body"></tbody>
                 </table>
             </div>
             <div id="mes-demandes" class="section">
                 <h2>Mes Demandes</h2>
-                <table id="user-requests-table">
+                <table id="user-requests-table" class="compact-table">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -659,7 +667,7 @@
             <div id="all-demandes-admin" class="section">
                 <h2>Toutes les Demandes (Admin)</h2>
                 <button class="export-button" onclick="exportToExcel('admin-requests-table', 'admin-demandes.xlsx')">Exporter vers Excel</button>
-                <table id="admin-requests-table">
+                <table id="admin-requests-table" class="compact-table">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -680,7 +688,7 @@
             <div id="all-demandes-rh" class="section">
                 <h2>Toutes les Demandes (RH)</h2>
                 <button class="export-button" onclick="exportToExcel('rh-requests-table', 'rh-demandes.xlsx')">Exporter vers Excel</button>
-                <table id="rh-requests-table">
+                <table id="rh-requests-table" class="compact-table">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -702,15 +710,15 @@
         <div id="event-modal" class="modal">
             <div class="modal-content">
                 <h3>Détails de l'Événement</h3>
-                <p><strong>Date:</strong> <span id="modal-date"></span></p>
-                <p><strong>Demandeur:</strong> <span id="modal-demandeur"></span></p>
-                <p><strong>Service:</strong> <span id="modal-service"></span></p>
-                <p><strong>Cause:</strong> <span id="modal-cause"></span></p>
-                <p><strong>Durée:</strong> <span id="modal-duree"></span></p>
-                <p><strong>Heure Début:</strong> <span id="modal-heure-debut"></span></p>
-                <p><strong>Heure Fin:</strong> <span id="modal-heure-fin"></span></p>
-                <p><strong>Salle:</strong> <span id="modal-salle"></span></p>
-                <p><strong>Statut:</strong> <span id="modal-statut"></span></p>
+                <p id="modal-date-row"><strong>Date:</strong> <span id="modal-date"></span></p>
+                <p id="modal-demandeur-row"><strong>Demandeur:</strong> <span id="modal-demandeur"></span></p>
+                <p id="modal-service-row"><strong>Service:</strong> <span id="modal-service"></span></p>
+                <p id="modal-cause-row"><strong>Cause:</strong> <span id="modal-cause"></span></p>
+                <p id="modal-duree-row"><strong>Durée:</strong> <span id="modal-duree"></span></p>
+                <p id="modal-heure-debut-row"><strong>Heure Début:</strong> <span id="modal-heure-debut"></span></p>
+                <p id="modal-heure-fin-row"><strong>Heure Fin:</strong> <span id="modal-heure-fin"></span></p>
+                <p id="modal-salle-row"><strong>Salle:</strong> <span id="modal-salle"></span></p>
+                <p id="modal-statut-row"><strong>Statut:</strong> <span id="modal-statut"></span></p>
                 <button class="close-modal" onclick="closeModal()">Fermer</button>
             </div>
         </div>
@@ -769,21 +777,19 @@
             renderNavbar();
             renderSections();
             loadData();
-            if (currentRole === "admin" || currentRole === "rh") {
-                initCalendar();
-            }
+            initCalendar();
         }
 
         // Render navbar based on role
         function renderNavbar() {
             const menu = document.getElementById('nav-menu');
             let navHtml = '';
+            navHtml += `<li><a onclick="showSection('planning')">Planning Salle de Réunion</a></li>`;
             if (currentRole === "demandeur") {
                 navHtml += `<li><a onclick="showSection('mes-demandes')">Mes Demandes</a></li>
                             <li><a onclick="showSection('reservation')">Réservation Salle de Réunion</a></li>`;
             } else {
-                navHtml += `<li><a onclick="showSection('planning')">Planning Salle de Réunion</a></li>
-                            <li><a onclick="showSection('all-demandes-${currentRole}')">Toutes les Demandes</a></li>`;
+                navHtml += `<li><a onclick="showSection('all-demandes-${currentRole}')">Toutes les Demandes</a></li>`;
             }
             navHtml += `<li style="margin-left: auto;"><a onclick="logout()">Déconnexion</a></li>`;
             menu.innerHTML = navHtml;
@@ -800,26 +806,27 @@
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
+            document.getElementById('planning').style.display = 'block';
             if (currentRole === "demandeur") {
-                document.getElementById('planning').style.display = 'none';
                 document.getElementById('mes-demandes').style.display = 'block';
                 document.getElementById('reservation').style.display = 'block';
                 document.getElementById('all-demandes-admin').style.display = 'none';
                 document.getElementById('all-demandes-rh').style.display = 'none';
+                document.getElementById('export-planning-button').style.display = 'none';
                 document.getElementById('mes-demandes').classList.add('active');
             } else if (currentRole === "admin") {
-                document.getElementById('planning').style.display = 'block';
                 document.getElementById('mes-demandes').style.display = 'none';
                 document.getElementById('reservation').style.display = 'none';
                 document.getElementById('all-demandes-admin').style.display = 'block';
                 document.getElementById('all-demandes-rh').style.display = 'none';
+                document.getElementById('export-planning-button').style.display = 'inline-block';
                 document.getElementById('planning').classList.add('active');
             } else if (currentRole === "rh") {
-                document.getElementById('planning').style.display = 'block';
                 document.getElementById('mes-demandes').style.display = 'none';
                 document.getElementById('reservation').style.display = 'none';
                 document.getElementById('all-demandes-admin').style.display = 'none';
                 document.getElementById('all-demandes-rh').style.display = 'block';
+                document.getElementById('export-planning-button').style.display = 'inline-block';
                 document.getElementById('planning').classList.add('active');
             }
         }
@@ -843,11 +850,11 @@
         window.toggleView = function(view) {
             const calendar = document.getElementById('calendar');
             const table = document.getElementById('planning-table');
-            const exportButton = document.querySelector('#planning .export-button');
+            const exportButton = document.getElementById('export-planning-button');
             if (view === 'calendar') {
                 calendar.style.display = 'block';
                 table.style.display = 'none';
-                exportButton.style.display = 'none';
+                exportButton.style.display = currentRole === 'demandeur' ? 'none' : 'inline-block';
                 if (calendarInstance) {
                     calendarInstance.render();
                     filterCalendarEvents();
@@ -855,7 +862,7 @@
             } else {
                 calendar.style.display = 'none';
                 table.style.display = 'table';
-                exportButton.style.display = 'inline-block';
+                exportButton.style.display = currentRole === 'demandeur' ? 'none' : 'inline-block';
             }
         };
 
@@ -909,16 +916,17 @@
                             if (request.statut === "approuve" && request.salle && (roomFilter === 'all' || request.salle === roomFilter)) {
                                 const start = `${request.date}T${request.heureDebut}`;
                                 const end = `${request.date}T${request.heureFin}`;
+                                const durationDisplay = `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`;
                                 events.push({
                                     id: requestId,
-                                    title: `${request.prenom} ${request.nom} - ${request.salle}`,
+                                    title: currentRole === 'demandeur' ? `Réservé - ${request.salle}` : `${request.prenom} ${request.nom} - ${request.salle}`,
                                     start: start,
                                     end: end,
                                     extendedProps: {
-                                        demandeur: `${request.prenom} ${request.nom}`,
-                                        service: request.service || 'N/A',
-                                        cause: request.cause || 'N/A',
-                                        duree: `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`,
+                                        demandeur: currentRole === 'demandeur' ? 'Réservé' : `${request.prenom} ${request.nom}`,
+                                        service: currentRole === 'demandeur' ? 'N/A' : request.service || 'N/A',
+                                        cause: currentRole === 'demandeur' ? 'N/A' : request.cause || 'N/A',
+                                        duree: currentRole === 'demandeur' ? 'N/A' : durationDisplay,
                                         heureDebut: request.heureDebut,
                                         heureFin: request.heureFin,
                                         salle: request.salle,
@@ -961,6 +969,22 @@
 
         // Show event details in modal
         function showEventModal(event) {
+            const modalRows = {
+                date: document.getElementById('modal-date-row'),
+                demandeur: document.getElementById('modal-demandeur-row'),
+                service: document.getElementById('modal-service-row'),
+                cause: document.getElementById('modal-cause-row'),
+                duree: document.getElementById('modal-duree-row'),
+                heureDebut: document.getElementById('modal-heure-debut-row'),
+                heureFin: document.getElementById('modal-heure-fin-row'),
+                salle: document.getElementById('modal-salle-row'),
+                statut: document.getElementById('modal-statut-row')
+            };
+
+            // Reset visibility
+            Object.values(modalRows).forEach(row => row.classList.remove('visible'));
+
+            // Populate fields
             document.getElementById('modal-date').textContent = event.start ? event.start.toISOString().split('T')[0] : 'N/A';
             document.getElementById('modal-demandeur').textContent = event.extendedProps.demandeur || 'N/A';
             document.getElementById('modal-service').textContent = event.extendedProps.service || 'N/A';
@@ -970,6 +994,17 @@
             document.getElementById('modal-heure-fin').textContent = event.extendedProps.heureFin || 'N/A';
             document.getElementById('modal-salle').textContent = event.extendedProps.salle || 'N/A';
             document.getElementById('modal-statut').textContent = event.extendedProps.statut || 'N/A';
+
+            // Show fields based on role
+            if (currentRole === 'demandeur') {
+                modalRows.date.classList.add('visible');
+                modalRows.heureDebut.classList.add('visible');
+                modalRows.heureFin.classList.add('visible');
+                modalRows.salle.classList.add('visible');
+            } else {
+                Object.values(modalRows).forEach(row => row.classList.add('visible'));
+            }
+
             document.getElementById('event-modal').style.display = 'flex';
         }
 
@@ -990,9 +1025,7 @@
 
         // Load data based on role
         function loadData() {
-            if (currentRole === "admin" || currentRole === "rh") {
-                loadPlanning();
-            }
+            loadPlanning();
             if (currentRole === "demandeur") {
                 loadUserRequests();
             } else if (currentRole === "admin") {
@@ -1004,9 +1037,34 @@
 
         // Load approved requests for Planning section
         function loadPlanning() {
+            const head = document.getElementById("planning-table-head");
+            const body = document.getElementById("planning-body");
+            if (currentRole === "demandeur") {
+                head.innerHTML = `
+                    <tr>
+                        <th>Date</th>
+                        <th>Heure Début</th>
+                        <th>Heure Fin</th>
+                        <th>Salle</th>
+                    </tr>
+                `;
+            } else {
+                head.innerHTML = `
+                    <tr>
+                        <th>Date</th>
+                        <th>Demandeur</th>
+                        <th>Service</th>
+                        <th>Cause</th>
+                        <th>Durée</th>
+                        <th>Heure Début</th>
+                        <th>Heure Fin</th>
+                        <th>Salle</th>
+                        <th>Statut</th>
+                    </tr>
+                `;
+            }
             const allRequestsRef = ref(db, `requests`);
             onValue(allRequestsRef, (snapshot) => {
-                const body = document.getElementById("planning-body");
                 body.innerHTML = "";
                 const usersRequests = snapshot.val();
                 let approvedCount = 0;
@@ -1017,24 +1075,34 @@
                                 approvedCount++;
                                 const durationDisplay = `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`;
                                 const row = document.createElement("tr");
-                                row.innerHTML = `
-                                    <td>${request.date}</td>
-                                    <td>${request.prenom} ${request.nom}</td>
-                                    <td>${request.service || 'N/A'}</td>
-                                    <td>${request.cause || 'N/A'}</td>
-                                    <td>${durationDisplay}</td>
-                                    <td>${request.heureDebut}</td>
-                                    <td>${request.heureFin}</td>
-                                    <td>${request.salle}</td>
-                                    <td><span class="status-badge status-approuve">Approuvé</span></td>
-                                `;
+                                if (currentRole === "demandeur") {
+                                    row.innerHTML = `
+                                        <td>${request.date}</td>
+                                        <td>${request.heureDebut}</td>
+                                        <td>${request.heureFin}</td>
+                                        <td>${request.salle}</td>
+                                    `;
+                                } else {
+                                    row.innerHTML = `
+                                        <td>${request.date}</td>
+                                        <td>${request.prenom} ${request.nom}</td>
+                                        <td>${request.service || 'N/A'}</td>
+                                        <td>${request.cause || 'N/A'}</td>
+                                        <td>${durationDisplay}</td>
+                                        <td>${request.heureDebut}</td>
+                                        <td>${request.heureFin}</td>
+                                        <td>${request.salle}</td>
+                                        <td><span class="status-badge status-approuve">Approuvé</span></td>
+                                    `;
+                                }
                                 body.appendChild(row);
                             }
                         });
                     });
                 }
                 if (approvedCount === 0) {
-                    body.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">Aucune réservation approuvée.</td></tr>';
+                    const colspan = currentRole === "demandeur" ? 4 : 9;
+                    body.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; padding: 2rem;">Aucune réservation approuvée.</td></tr>`;
                 }
             });
         }
