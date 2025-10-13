@@ -1,8 +1,9 @@
-<!DOCTYPE html>
+​<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>WKW Automotive Tunisie - Système de Réservation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -28,6 +29,8 @@
             background-color: var(--background-color);
             color: var(--text-color);
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         #login-section {
@@ -165,6 +168,9 @@
             border-radius: 0.375rem;
             font-size: 1rem;
             transition: border-color 0.3s, box-shadow 0.3s;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         .form-group input:focus,
@@ -293,7 +299,9 @@
         #calendar {
             margin-top: 1rem;
             max-width: 100%;
+            position: relative;
             animation: fadeInUp 0.5s ease-out;
+            touch-action: pan-y;
         }
 
         .fc {
@@ -301,15 +309,18 @@
             border-radius: 0.75rem;
             padding: 1rem;
             box-shadow: var(--shadow);
+            transition: opacity 0.3s ease;
         }
 
         .fc-event {
             cursor: pointer;
-            transition: transform 0.2s;
+            animation: eventFadeIn 0.5s ease-out;
+            transition: transform 0.2s, opacity 0.3s;
         }
 
         .fc-event:hover {
             transform: scale(1.02);
+            opacity: 0.9;
         }
 
         .modal {
@@ -332,7 +343,7 @@
             max-width: 90%;
             width: 28rem;
             box-shadow: var(--shadow);
-            animation: slideInModal 0.3s ease-out;
+            animation: bounceIn 0.4s ease-out;
         }
 
         .modal-content h3 {
@@ -351,6 +362,40 @@
 
         .close-modal:hover {
             background-color: #4b5563;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        .room-filter {
+            margin-bottom: 1rem;
+        }
+
+        .room-filter select {
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color);
+            width: 200px;
+            font-size: 1rem;
+            background-color: #fff;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231f2937' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
         }
 
         @media (max-width: 768px) {
@@ -391,6 +436,20 @@
             .fc .fc-daygrid-day {
                 padding: 0.5rem;
             }
+            .room-filter select {
+                width: 100%;
+            }
+            .fc .fc-toolbar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .fc .fc-toolbar-title {
+                font-size: 1rem;
+            }
+            .fc .fc-button {
+                padding: 0.5rem;
+                font-size: 0.875rem;
+            }
         }
 
         @media (min-width: 769px) and (max-width: 1024px) {
@@ -399,6 +458,24 @@
             }
             .fc .fc-daygrid-day {
                 padding: 0.75rem;
+            }
+            .room-filter select {
+                width: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .fc .fc-toolbar {
+                flex-wrap: wrap;
+            }
+            .fc .fc-button-group {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .modal-content {
+                padding: 1rem;
+                width: 95%;
             }
         }
 
@@ -422,9 +499,20 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
-        @keyframes slideInModal {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        @keyframes bounceIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes eventFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
     </style>
 </head>
@@ -458,12 +546,21 @@
         <div class="container">
             <div id="planning" class="section">
                 <h2>Planning Salle de Réunion</h2>
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
                     <button class="toggle-view-button" onclick="toggleView('calendar')">Vue Calendrier</button>
                     <button class="toggle-view-button" onclick="toggleView('table')">Vue Tableau</button>
-                    <button class="export-button" onclick="exportToExcel('planning-table', 'planning-demandes.xlsx')">Exporter vers Excel</button>
+                    <button class="export-button" onclick="exportPlanningToExcel()">Exporter vers Excel</button>
+                    <div class="room-filter">
+                        <select id="room-filter" onchange="filterCalendarEvents()">
+                            <option value="all">Toutes les Salles</option>
+                            <option value="Salle Carthage">Salle Carthage</option>
+                            <option value="Salle Utique">Salle Utique</option>
+                        </select>
+                    </div>
                 </div>
-                <div id="calendar" style="display: none;"></div>
+                <div id="calendar" style="display: none;">
+                    <div class="loading-spinner" id="calendar-loading"></div>
+                </div>
                 <table id="planning-table" style="display: table;">
                     <thead>
                         <tr>
@@ -644,6 +741,7 @@
 
         let currentUser = null;
         let currentRole = null;
+        let calendarInstance = null;
 
         // Role determination
         function determineRole(email) {
@@ -658,6 +756,10 @@
             document.getElementById('dashboard').style.display = 'none';
             currentUser = null;
             currentRole = null;
+            if (calendarInstance) {
+                calendarInstance.destroy();
+                calendarInstance = null;
+            }
         }
 
         // Show dashboard
@@ -667,7 +769,9 @@
             renderNavbar();
             renderSections();
             loadData();
-            initCalendar();
+            if (currentRole === "admin" || currentRole === "rh") {
+                initCalendar();
+            }
         }
 
         // Render navbar based on role
@@ -675,8 +779,7 @@
             const menu = document.getElementById('nav-menu');
             let navHtml = '';
             if (currentRole === "demandeur") {
-                navHtml += `<li><a onclick="showSection('planning')">Planning Salle de Réunion</a></li>
-                            <li><a onclick="showSection('mes-demandes')">Mes Demandes</a></li>
+                navHtml += `<li><a onclick="showSection('mes-demandes')">Mes Demandes</a></li>
                             <li><a onclick="showSection('reservation')">Réservation Salle de Réunion</a></li>`;
             } else {
                 navHtml += `<li><a onclick="showSection('planning')">Planning Salle de Réunion</a></li>
@@ -697,22 +800,27 @@
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
             });
-            document.getElementById('planning').classList.add('active');
             if (currentRole === "demandeur") {
+                document.getElementById('planning').style.display = 'none';
                 document.getElementById('mes-demandes').style.display = 'block';
                 document.getElementById('reservation').style.display = 'block';
                 document.getElementById('all-demandes-admin').style.display = 'none';
                 document.getElementById('all-demandes-rh').style.display = 'none';
+                document.getElementById('mes-demandes').classList.add('active');
             } else if (currentRole === "admin") {
+                document.getElementById('planning').style.display = 'block';
                 document.getElementById('mes-demandes').style.display = 'none';
                 document.getElementById('reservation').style.display = 'none';
                 document.getElementById('all-demandes-admin').style.display = 'block';
                 document.getElementById('all-demandes-rh').style.display = 'none';
+                document.getElementById('planning').classList.add('active');
             } else if (currentRole === "rh") {
+                document.getElementById('planning').style.display = 'block';
                 document.getElementById('mes-demandes').style.display = 'none';
                 document.getElementById('reservation').style.display = 'none';
                 document.getElementById('all-demandes-admin').style.display = 'none';
                 document.getElementById('all-demandes-rh').style.display = 'block';
+                document.getElementById('planning').classList.add('active');
             }
         }
 
@@ -740,6 +848,10 @@
                 calendar.style.display = 'block';
                 table.style.display = 'none';
                 exportButton.style.display = 'none';
+                if (calendarInstance) {
+                    calendarInstance.render();
+                    filterCalendarEvents();
+                }
             } else {
                 calendar.style.display = 'none';
                 table.style.display = 'table';
@@ -750,7 +862,8 @@
         // Initialize FullCalendar
         function initCalendar() {
             const calendarEl = document.getElementById('calendar');
-            const calendar = new FullCalendar.Calendar(calendarEl, {
+            calendarEl.innerHTML = '<div class="loading-spinner" id="calendar-loading"></div>';
+            calendarInstance = new FullCalendar.Calendar(calendarEl, {
                 initialView: window.innerWidth <= 768 ? 'dayGridDay' : 'dayGridMonth',
                 headerToolbar: {
                     left: 'prev,next today',
@@ -767,19 +880,33 @@
                     hour12: false
                 },
                 height: 'auto',
-                responsive: true
+                viewDidMount: function() {
+                    document.querySelector('.fc').style.opacity = '1';
+                },
+                viewWillUnmount: function() {
+                    document.querySelector('.fc').style.opacity = '0';
+                }
             });
-            calendar.render();
+            calendarInstance.render();
+            loadCalendarEvents();
+        }
 
-            // Load calendar events
+        // Load and filter calendar events
+        function loadCalendarEvents() {
+            const calendarEl = document.getElementById('calendar');
+            const loadingSpinner = document.getElementById('calendar-loading');
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'block';
+            }
             const allRequestsRef = ref(db, `requests`);
             onValue(allRequestsRef, (snapshot) => {
                 const events = [];
                 const usersRequests = snapshot.val();
+                const roomFilter = document.getElementById('room-filter').value;
                 if (usersRequests) {
                     Object.entries(usersRequests).forEach(([userId, userRequests]) => {
                         Object.entries(userRequests).forEach(([requestId, request]) => {
-                            if (request.statut === "approuve") {
+                            if (request.statut === "approuve" && request.salle && (roomFilter === 'all' || request.salle === roomFilter)) {
                                 const start = `${request.date}T${request.heureDebut}`;
                                 const end = `${request.date}T${request.heureFin}`;
                                 events.push({
@@ -789,8 +916,8 @@
                                     end: end,
                                     extendedProps: {
                                         demandeur: `${request.prenom} ${request.nom}`,
-                                        service: request.service,
-                                        cause: request.cause,
+                                        service: request.service || 'N/A',
+                                        cause: request.cause || 'N/A',
                                         duree: `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`,
                                         heureDebut: request.heureDebut,
                                         heureFin: request.heureFin,
@@ -802,22 +929,47 @@
                         });
                     });
                 }
-                calendar.getEvents().forEach(event => event.remove());
-                events.forEach(event => calendar.addEvent(event));
+                if (calendarInstance) {
+                    calendarInstance.getEvents().forEach(event => event.remove());
+                    if (events.length === 0) {
+                        calendarEl.innerHTML = '<p style="text-align: center; padding: 2rem;">Aucune réservation approuvée pour cette salle.</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>';
+                    } else {
+                        calendarEl.innerHTML = '<div class="loading-spinner" id="calendar-loading"></div>';
+                        calendarInstance.render();
+                        events.forEach((event, index) => {
+                            setTimeout(() => {
+                                calendarInstance.addEvent(event);
+                            }, index * 100);
+                        });
+                    }
+                }
+                if (loadingSpinner) {
+                    setTimeout(() => {
+                        loadingSpinner.style.display = 'none';
+                    }, events.length * 100 + 300);
+                }
+            }, (error) => {
+                console.error("Error loading calendar events:", error);
+                calendarEl.innerHTML = '<p style="text-align: center; padding: 2rem; color: #991b1b;">Erreur lors du chargement des événements.</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>';
             });
         }
 
+        // Filter calendar events by room
+        window.filterCalendarEvents = function() {
+            loadCalendarEvents();
+        };
+
         // Show event details in modal
         function showEventModal(event) {
-            document.getElementById('modal-date').textContent = event.start.toISOString().split('T')[0];
-            document.getElementById('modal-demandeur').textContent = event.extendedProps.demandeur;
-            document.getElementById('modal-service').textContent = event.extendedProps.service;
-            document.getElementById('modal-cause').textContent = event.extendedProps.cause;
-            document.getElementById('modal-duree').textContent = event.extendedProps.duree;
-            document.getElementById('modal-heure-debut').textContent = event.extendedProps.heureDebut;
-            document.getElementById('modal-heure-fin').textContent = event.extendedProps.heureFin;
-            document.getElementById('modal-salle').textContent = event.extendedProps.salle;
-            document.getElementById('modal-statut').textContent = event.extendedProps.statut;
+            document.getElementById('modal-date').textContent = event.start ? event.start.toISOString().split('T')[0] : 'N/A';
+            document.getElementById('modal-demandeur').textContent = event.extendedProps.demandeur || 'N/A';
+            document.getElementById('modal-service').textContent = event.extendedProps.service || 'N/A';
+            document.getElementById('modal-cause').textContent = event.extendedProps.cause || 'N/A';
+            document.getElementById('modal-duree').textContent = event.extendedProps.duree || 'N/A';
+            document.getElementById('modal-heure-debut').textContent = event.extendedProps.heureDebut || 'N/A';
+            document.getElementById('modal-heure-fin').textContent = event.extendedProps.heureFin || 'N/A';
+            document.getElementById('modal-salle').textContent = event.extendedProps.salle || 'N/A';
+            document.getElementById('modal-statut').textContent = event.extendedProps.statut || 'N/A';
             document.getElementById('event-modal').style.display = 'flex';
         }
 
@@ -838,7 +990,9 @@
 
         // Load data based on role
         function loadData() {
-            loadPlanning();
+            if (currentRole === "admin" || currentRole === "rh") {
+                loadPlanning();
+            }
             if (currentRole === "demandeur") {
                 loadUserRequests();
             } else if (currentRole === "admin") {
@@ -866,8 +1020,8 @@
                                 row.innerHTML = `
                                     <td>${request.date}</td>
                                     <td>${request.prenom} ${request.nom}</td>
-                                    <td>${request.service}</td>
-                                    <td>${request.cause}</td>
+                                    <td>${request.service || 'N/A'}</td>
+                                    <td>${request.cause || 'N/A'}</td>
                                     <td>${durationDisplay}</td>
                                     <td>${request.heureDebut}</td>
                                     <td>${request.heureFin}</td>
@@ -916,8 +1070,8 @@
                             <td>${request.date}</td>
                             <td>${request.nom}</td>
                             <td>${request.prenom}</td>
-                            <td>${request.service}</td>
-                            <td>${request.cause}</td>
+                            <td>${request.service || 'N/A'}</td>
+                            <td>${request.cause || 'N/A'}</td>
                             <td>${durationDisplay}</td>
                             <td>${request.heureDebut}</td>
                             <td>${request.heureFin}</td>
@@ -951,8 +1105,8 @@
                                 row.innerHTML = `
                                     <td>${request.date}</td>
                                     <td>${request.prenom} ${request.nom}</td>
-                                    <td>${request.service}</td>
-                                    <td>${request.cause}</td>
+                                    <td>${request.service || 'N/A'}</td>
+                                    <td>${request.cause || 'N/A'}</td>
                                     <td>${durationDisplay}</td>
                                     <td>${request.heureDebut}</td>
                                     <td>${request.heureFin}</td>
@@ -994,8 +1148,8 @@
                                 row.innerHTML = `
                                     <td>${request.date}</td>
                                     <td>${request.prenom} ${request.nom}</td>
-                                    <td>${request.service}</td>
-                                    <td>${request.cause}</td>
+                                    <td>${request.service || 'N/A'}</td>
+                                    <td>${request.cause || 'N/A'}</td>
                                     <td>${durationDisplay}</td>
                                     <td>${request.heureDebut}</td>
                                     <td>${request.heureFin}</td>
@@ -1128,6 +1282,101 @@
             return hours * 60 + minutes;
         }
 
+        // Fix duration unit in Firebase
+        async function fixDurationUnit() {
+            const allRequestsRef = ref(db, 'requests');
+            const snapshot = await get(allRequestsRef);
+            const usersRequests = snapshot.val();
+            if (usersRequests) {
+                for (const userId in usersRequests) {
+                    for (const requestId in usersRequests[userId]) {
+                        const request = usersRequests[userId][requestId];
+                        if (request.dureeUnite === 'Heurs') {
+                            const requestRef = ref(db, `requests/${userId}/${requestId}`);
+                            await update(requestRef, { dureeUnite: 'heures' });
+                            console.log(`Fixed dureeUnite for request ${requestId}: Heurs → heures`);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Export all planning requests to Excel for admin and RH
+        window.exportPlanningToExcel = async function() {
+            if (currentRole !== "admin" && currentRole !== "rh") return;
+
+            const allRequestsRef = ref(db, 'requests');
+            const snapshot = await get(allRequestsRef);
+            const usersRequests = snapshot.val();
+            const rows = [];
+
+            if (usersRequests) {
+                Object.entries(usersRequests).forEach(([userId, userRequests]) => {
+                    Object.entries(userRequests).forEach(([requestId, request]) => {
+                        const durationDisplay = `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`;
+                        let statusText = "En attente";
+                        if (request.statut === "en_rh") statusText = "En validation RH";
+                        else if (request.statut === "approuve") statusText = "Approuvé";
+                        else if (request.statut === "refuse") statusText = "Refusé";
+                        let commentaire = '';
+                        if (request.workflow && request.workflow.admin && request.workflow.admin.commentaire) {
+                            commentaire = request.workflow.admin.commentaire;
+                        } else if (request.workflow && request.workflow.rh && request.workflow.rh.commentaire) {
+                            commentaire = request.workflow.rh.commentaire;
+                        }
+                        rows.push([
+                            request.date,
+                            `${request.prenom} ${request.nom}`,
+                            request.service || 'N/A',
+                            request.cause || 'N/A',
+                            durationDisplay,
+                            request.heureDebut,
+                            request.heureFin,
+                            request.salle,
+                            statusText,
+                            commentaire
+                        ]);
+                    });
+                });
+            }
+
+            // Create a temporary table for export
+            const tempTable = document.createElement('table');
+            tempTable.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Demandeur</th>
+                        <th>Service</th>
+                        <th>Cause</th>
+                        <th>Durée</th>
+                        <th>Heure Début</th>
+                        <th>Heure Fin</th>
+                        <th>Salle</th>
+                        <th>Statut</th>
+                        <th>Commentaire</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map(row => `
+                        <tr>
+                            ${row.map(cell => `<td>${cell}</td>`).join('')}
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+
+            const wb = XLSX.utils.table_to_book(tempTable, { sheet: "Planning" });
+            XLSX.writeFile(wb, 'planning-demandes.xlsx');
+        };
+
+        // Export table to Excel (for other tables)
+        window.exportToExcel = function(tableId, fileName) {
+            const table = document.getElementById(tableId);
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+            XLSX.writeFile(wb, fileName);
+        };
+
         // Reservation form submission for demandeur
         if (document.getElementById('reservation-form')) {
             document.getElementById("reservation-form").addEventListener("submit", async (e) => {
@@ -1194,16 +1443,9 @@
             });
         }
 
-        // Export table to Excel
-        window.exportToExcel = function(tableId, fileName) {
-            const table = document.getElementById(tableId);
-            const wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"});
-            XLSX.writeFile(wb, fileName);
-        };
-
         // Login logic
         document.getElementById("login-button").addEventListener("click", async () => {
-            const email = document.getElementById("email").value;
+            const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value;
             const errorMessage = document.getElementById("error-message");
             errorMessage.style.display = "none";
@@ -1212,18 +1454,29 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 currentUser = userCredential.user;
                 currentRole = determineRole(email);
+                await fixDurationUnit();
                 showDashboard();
             } catch (error) {
-                errorMessage.textContent = "Erreur : " + error.message;
+                console.error("Login error:", error);
+                let errorText = "Erreur : ";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorText += "Email ou mot de passe incorrect.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorText += "Adresse email invalide.";
+                } else {
+                    errorText += error.message;
+                }
+                errorMessage.textContent = errorText;
                 errorMessage.style.display = "block";
             }
         });
 
         // Auth state listener
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 currentRole = determineRole(user.email);
+                await fixDurationUnit();
                 showDashboard();
             } else {
                 showLogin();
