@@ -783,7 +783,8 @@
             <div class="modal-content">
                 <h3>Détails de l'Événement</h3>
                 <p id="modal-date-row"><strong>Date:</strong> <span id="modal-date"></span></p>
-                <p id="modal-demandeur-row"><strong>Demandeur:</strong> <span id="modal-demandeur"></span></p>
+                <p id="modal-nom-row"><strong>Nom:</strong> <span id="modal-nom"></span></p>
+                <p id="modal-prenom-row"><strong>Prénom:</strong> <span id="modal-prenom"></span></p>
                 <p id="modal-service-row"><strong>Service:</strong> <span id="modal-service"></span></p>
                 <p id="modal-cause-row"><strong>Cause:</strong> <span id="modal-cause"></span></p>
                 <p id="modal-duree-row"><strong>Durée:</strong> <span id="modal-duree"></span></p>
@@ -1025,7 +1026,8 @@
                                     start: start,
                                     end: end,
                                     extendedProps: {
-                                        demandeur: currentRole === 'demandeur' ? 'Réservé' : `${request.prenom} ${request.nom}`,
+                                        nom: request.nom || 'N/A',
+                                        prenom: request.prenom || 'N/A',
                                         service: currentRole === 'demandeur' ? 'N/A' : request.service || 'N/A',
                                         cause: currentRole === 'demandeur' ? 'N/A' : request.cause || 'N/A',
                                         duree: currentRole === 'demandeur' ? 'N/A' : durationDisplay,
@@ -1073,7 +1075,8 @@
         function showEventModal(event) {
             const modalRows = {
                 date: document.getElementById('modal-date-row'),
-                demandeur: document.getElementById('modal-demandeur-row'),
+                nom: document.getElementById('modal-nom-row'),
+                prenom: document.getElementById('modal-prenom-row'),
                 service: document.getElementById('modal-service-row'),
                 cause: document.getElementById('modal-cause-row'),
                 duree: document.getElementById('modal-duree-row'),
@@ -1088,7 +1091,8 @@
 
             // Populate fields
             document.getElementById('modal-date').textContent = event.start ? event.start.toISOString().split('T')[0] : 'N/A';
-            document.getElementById('modal-demandeur').textContent = event.extendedProps.demandeur || 'N/A';
+            document.getElementById('modal-nom').textContent = event.extendedProps.nom || 'N/A';
+            document.getElementById('modal-prenom').textContent = event.extendedProps.prenom || 'N/A';
             document.getElementById('modal-service').textContent = event.extendedProps.service || 'N/A';
             document.getElementById('modal-cause').textContent = event.extendedProps.cause || 'N/A';
             document.getElementById('modal-duree').textContent = event.extendedProps.duree || 'N/A';
@@ -1100,6 +1104,8 @@
             // Show fields based on role
             if (currentRole === 'demandeur') {
                 modalRows.date.classList.add('visible');
+                modalRows.nom.classList.add('visible');
+                modalRows.prenom.classList.add('visible');
                 modalRows.heureDebut.classList.add('visible');
                 modalRows.heureFin.classList.add('visible');
                 modalRows.salle.classList.add('visible');
