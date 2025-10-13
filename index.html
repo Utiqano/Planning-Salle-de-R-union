@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -606,19 +606,19 @@
     <div id="login-section">
         <div class="login-container">
             <div class="logo">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzQimTQplX7Kt50BLRPCc8pRU1Ic1EZDPOKQ&s">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzQimTQplX7Kt50BLRPCc8pRU1Ic1EZDPOKQ&s" alt="WKW Automotive Tunisie Logo">
             </div>
             <h2>WKW Automotive Tunisie</h2>
             <div id="error-message" class="error-message"></div>
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" placeholder="Enter your email" required>
+                <input type="email" id="email" placeholder="Entrez votre email" required>
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" required>
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" placeholder="Entrez votre mot de passe" required>
             </div>
-            <button id="login-button">Login</button>
+            <button id="login-button">Connexion</button>
         </div>
     </div>
 
@@ -690,19 +690,19 @@
                     </div>
                     <div class="form-group">
                         <label for="nom">Nom</label>
-                        <input type="text" id="nom" placeholder="Enter your last name" required>
+                        <input type="text" id="nom" placeholder="Entrez votre nom" required>
                     </div>
                     <div class="form-group">
                         <label for="prenom">Prénom</label>
-                        <input type="text" id="prenom" placeholder="Enter your first name" required>
+                        <input type="text" id="prenom" placeholder="Entrez votre prénom" required>
                     </div>
                     <div class="form-group">
                         <label for="service">Service</label>
-                        <input type="text" id="service" placeholder="Enter your department" required>
+                        <input type="text" id="service" placeholder="Entrez votre service" required>
                     </div>
                     <div class="form-group">
                         <label for="cause">Cause de Réservation</label>
-                        <textarea id="cause" placeholder="Enter the reason for reservation" required></textarea>
+                        <textarea id="cause" placeholder="Entrez la raison de la réservation" required></textarea>
                     </div>
                     <div class="form-group">
                         <label for="duree-unite">Unité de Durée</label>
@@ -715,7 +715,7 @@
                     </div>
                     <div class="form-group">
                         <label for="duree">Durée de Réservation</label>
-                        <input type="number" id="duree" min="1" placeholder="Enter duration" required>
+                        <input type="number" id="duree" min="1" placeholder="Entrez la durée" required>
                     </div>
                     <div class="form-group">
                         <label for="heure-debut">Heure Début</label>
@@ -728,7 +728,7 @@
                     <div class="form-group">
                         <label for="salle">Salle de Réunion</label>
                         <select id="salle" required>
-                            <option value="" disabled selected>Select a room</option>
+                            <option value="" disabled selected>Sélectionnez une salle</option>
                             <option value="Salle Carthage">Salle Carthage</option>
                             <option value="Salle Utique">Salle Utique</option>
                         </select>
@@ -822,6 +822,7 @@
         let currentUser = null;
         let currentRole = null;
         let calendarInstance = null;
+        let currentSection = 'notifications'; // Default to notifications
 
         // Role determination
         function determineRole(email) {
@@ -849,7 +850,6 @@
             renderNavbar();
             renderSections();
             loadData();
-            initCalendar();
             loadNotifications();
         }
 
@@ -863,7 +863,7 @@
                 navHtml += `<li><a onclick="showSection('mes-demandes')">Mes Demandes</a></li>
                             <li><a onclick="showSection('reservation')">Réservation Salle de Réunion</a></li>`;
             } else {
-                navHtml += `<li><a onclick="showSection('all-demandes-${currentRole}')">Toutes les Demandes</a></li>`;
+                navHtml += `<li><a onclick="showSection('all-demandes-${currentRole}')">Toutes les Demandes (${currentRole === 'admin' ? 'Admin' : 'RH'})</a></li>`;
             }
             navHtml += `<li style="margin-left: auto;"><a onclick="logout()">Déconnexion</a></li>`;
             menu.innerHTML = navHtml;
@@ -878,48 +878,74 @@
 
         // Render sections based on role
         function renderSections() {
+            // Hide all sections initially
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
+                section.style.display = 'none';
             });
-            document.getElementById('notifications').style.display = 'block';
-            document.getElementById('planning').style.display = 'block';
+            // Show notifications section by default
+            const notificationsSection = document.getElementById('notifications');
+            notificationsSection.style.display = 'block';
+            notificationsSection.classList.add('active');
+
+            // Make sections available based on role, but keep them hidden
             if (currentRole === "demandeur") {
-                document.getElementById('mes-demandes').style.display = 'block';
-                document.getElementById('reservation').style.display = 'block';
+                document.getElementById('planning').style.display = 'none';
+                document.getElementById('mes-demandes').style.display = 'none';
+                document.getElementById('reservation').style.display = 'none';
                 document.getElementById('all-demandes-admin').style.display = 'none';
                 document.getElementById('all-demandes-rh').style.display = 'none';
                 document.getElementById('export-planning-button').style.display = 'none';
-                document.getElementById('notifications').classList.add('active');
             } else if (currentRole === "admin") {
-                document.getElementById('mes-demandes').style.display = 'none';
-                document.getElementById('reservation').style.display = 'none';
-                document.getElementById('all-demandes-admin').style.display = 'block';
-                document.getElementById('all-demandes-rh').style.display = 'none';
-                document.getElementById('export-planning-button').style.display = 'inline-block';
-                document.getElementById('notifications').classList.add('active');
-            } else if (currentRole === "rh") {
+                document.getElementById('planning').style.display = 'none';
                 document.getElementById('mes-demandes').style.display = 'none';
                 document.getElementById('reservation').style.display = 'none';
                 document.getElementById('all-demandes-admin').style.display = 'none';
-                document.getElementById('all-demandes-rh').style.display = 'block';
-                document.getElementById('export-planning-button').style.display = 'inline-block';
-                document.getElementById('notifications').classList.add('active');
+                document.getElementById('all-demandes-rh').style.display = 'none';
+                document.getElementById('export-planning-button').style.display = 'none';
+            } else if (currentRole === "rh") {
+                document.getElementById('planning').style.display = 'none';
+                document.getElementById('mes-demandes').style.display = 'none';
+                document.getElementById('reservation').style.display = 'none';
+                document.getElementById('all-demandes-admin').style.display = 'none';
+                document.getElementById('all-demandes-rh').style.display = 'none';
+                document.getElementById('export-planning-button').style.display = 'none';
             }
         }
 
-        // Show specific section
+        // Show or hide specific section
         window.showSection = function(sectionId) {
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
+            const menu = document.getElementById('nav-menu');
+            const isMobile = window.innerWidth <= 768;
+            const isMenuOpen = !menu.classList.contains('hidden');
             const section = document.getElementById(sectionId);
-            if (section) {
-                section.classList.add('active');
+
+            // Toggle section visibility
+            if (sectionId === currentSection && section.classList.contains('active')) {
+                // If the same section is clicked and it's active, hide it
+                section.classList.remove('active');
+                section.style.display = 'none';
+                currentSection = null;
+            } else {
+                // Hide all sections
+                document.querySelectorAll('.section').forEach(sec => {
+                    sec.classList.remove('active');
+                    sec.style.display = 'none';
+                });
+                // Show the clicked section
+                if (section) {
+                    section.classList.add('active');
+                    section.style.display = 'block';
+                    currentSection = sectionId;
+                }
             }
+
+            // Close the navbar menu on mobile after clicking
+            if (isMobile && isMenuOpen) {
+                menu.classList.add('hidden');
+            }
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            if (window.innerWidth <= 768) {
-                document.getElementById('nav-menu').classList.add('hidden');
-            }
         };
 
         // Toggle between calendar and table views
@@ -992,7 +1018,7 @@
                             if (request.statut === "approuve" && request.salle && (roomFilter === 'all' || request.salle === roomFilter)) {
                                 const start = `${request.date}T${request.heureDebut}`;
                                 const end = `${request.date}T${request.heureFin}`;
-                                const durationDisplay = `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`;
+                                const durationDisplay = `${request.duree} ${request.dureeUnite}`;
                                 events.push({
                                     id: requestId,
                                     title: currentRole === 'demandeur' ? `Réservé - ${request.salle}` : `${request.prenom} ${request.nom} - ${request.salle}`,
@@ -1016,7 +1042,7 @@
                 if (calendarInstance) {
                     calendarInstance.getEvents().forEach(event => event.remove());
                     if (events.length === 0) {
-                        calendarEl.innerHTML = '<p style="text-align: center; padding: 2rem;">Aucune réservation approuvée pour cette salle.</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>';
+                        calendarEl.innerHTML = `<p style="text-align: center; padding: 2rem;">Aucune réservation approuvée.</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>`;
                     } else {
                         calendarEl.innerHTML = '<div class="loading-spinner" id="calendar-loading"></div>';
                         calendarInstance.render();
@@ -1034,7 +1060,7 @@
                 }
             }, (error) => {
                 console.error("Error loading calendar events:", error);
-                calendarEl.innerHTML = '<p style="text-align: center; padding: 2rem; color: #991b1b;">Erreur lors du chargement des événements.</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>';
+                calendarEl.innerHTML = `<p style="text-align: center; padding: 2rem; color: #991b1b;">Erreur : ${error.message}</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>`;
             });
         }
 
@@ -1103,7 +1129,7 @@
                         const notificationItem = document.createElement('div');
                         notificationItem.className = `notification-item ${notification.status}`;
                         notificationItem.innerHTML = `
-                            <p>${notification.message} (${new Date(notification.timestamp).toLocaleString()})</p>
+                            <p>${notification.message} (${new Date(notification.timestamp).toLocaleString('fr-FR')})</p>
                             <div>
                                 ${notification.status === 'unread' ? `<button onclick="markNotificationRead('${notificationId}')">Marquer comme lu</button>` : ''}
                                 <button onclick="deleteNotification('${notificationId}')">Supprimer</button>
@@ -1112,7 +1138,7 @@
                         notificationList.appendChild(notificationItem);
                     });
                 } else {
-                    notificationList.innerHTML = '<p style="text-align: center; padding: 1rem;">Aucune notification.</p>';
+                    notificationList.innerHTML = `<p style="text-align: center; padding: 1rem;">Aucune notification.</p>`;
                 }
                 updateNotificationBadge(unreadCount);
             });
@@ -1178,9 +1204,30 @@
         };
 
         // Create notification
-        async function createNotification(userId, message, type) {
+        async function createNotification(userId, type, params = {}) {
             try {
                 const notificationsRef = ref(db, `notifications/${userId}`);
+                let message = '';
+                switch (type) {
+                    case 'submission':
+                        message = `Votre demande de réservation pour ${params.date} (${params.room}) a été soumise avec succès.`;
+                        break;
+                    case 'admin_pending':
+                        message = `Nouvelle demande de réservation par ${params.name} pour ${params.date} (${params.room}).`;
+                        break;
+                    case 'approval_admin':
+                        message = `Votre demande pour ${params.date} (${params.room}) a été approuvée par l'admin et est en attente de validation RH.`;
+                        break;
+                    case 'rh_pending':
+                        message = `Nouvelle demande en validation RH pour ${params.name} (${params.date}, ${params.room}).`;
+                        break;
+                    case 'approval_rh':
+                        message = `Votre demande pour ${params.date} (${params.room}) a été approuvée par RH.`;
+                        break;
+                    case 'rejection':
+                        message = `Votre demande pour ${params.date} (${params.room}) a été rejetée. Raison : ${params.reason}`;
+                        break;
+                }
                 await push(notificationsRef, {
                     message,
                     type,
@@ -1252,7 +1299,7 @@
                         Object.entries(userRequests).forEach(([requestId, request]) => {
                             if (request.statut === "approuve") {
                                 approvedCount++;
-                                const durationDisplay = `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`;
+                                const durationDisplay = `${request.duree} ${request.dureeUnite}`;
                                 const row = document.createElement("tr");
                                 if (currentRole === "demandeur") {
                                     row.innerHTML = `
@@ -1311,7 +1358,7 @@
                         if (request.workflow && request.workflow.admin && request.workflow.admin.commentaire) {
                             commentaireHtml = `<div class="commentaire">${request.workflow.admin.commentaire}</div>`;
                         }
-                        const durationDisplay = `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`;
+                        const durationDisplay = `${request.duree} ${request.dureeUnite}`;
                         const row = document.createElement("tr");
                         row.innerHTML = `
                             <td>${request.date}</td>
@@ -1329,7 +1376,7 @@
                         body.appendChild(row);
                     });
                 } else {
-                    body.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 2rem;">Aucune demande trouvée.</td></tr>';
+                    body.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 2rem;">Aucune demande trouvée.</td></tr>`;
                 }
             });
         }
@@ -1347,7 +1394,7 @@
                         Object.entries(userRequests).forEach(([requestId, request]) => {
                             if (request.statut === "en_attente") {
                                 pendingCount++;
-                                const durationDisplay = `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`;
+                                const durationDisplay = `${request.duree} ${request.dureeUnite}`;
                                 const row = document.createElement("tr");
                                 row.innerHTML = `
                                     <td>${request.date}</td>
@@ -1362,7 +1409,7 @@
                                     <td>
                                         <div class="action-buttons">
                                             <button class="btn btn-approve" onclick="adminApprove('${requestId}', '${userId}')">Approuver</button>
-                                            <button class="btn btn-reject" onclick="adminReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')">Rejeter</button>
+                                            <button class="btn btn-reject" onclick="adminReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')">Refuser</button>
                                         </div>
                                     </td>
                                 `;
@@ -1372,7 +1419,7 @@
                     });
                 }
                 if (pendingCount === 0) {
-                    body.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 2rem;">Aucune demande en attente.</td></tr>';
+                    body.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem;">Aucune demande en attente.</td></tr>`;
                 }
             });
         }
@@ -1390,7 +1437,7 @@
                         Object.entries(userRequests).forEach(([requestId, request]) => {
                             if (request.statut === "en_rh") {
                                 pendingCount++;
-                                const durationDisplay = `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`;
+                                const durationDisplay = `${request.duree} ${request.dureeUnite}`;
                                 const row = document.createElement("tr");
                                 row.innerHTML = `
                                     <td>${request.date}</td>
@@ -1405,7 +1452,7 @@
                                     <td>
                                         <div class="action-buttons">
                                             <button class="btn btn-approve" onclick="rhApprove('${requestId}', '${userId}')">Approuver</button>
-                                            <button class="btn btn-reject" onclick="rhReject('${requestId}', '${userId}')">Rejeter</button>
+                                            <button class="btn btn-reject" onclick="rhReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')">Refuser</button>
                                         </div>
                                     </td>
                                 `;
@@ -1415,115 +1462,122 @@
                     });
                 }
                 if (pendingCount === 0) {
-                    body.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 2rem;">Aucune demande en validation RH.</td></tr>';
+                    body.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem;">Aucune demande en validation RH.</td></tr>`;
                 }
             });
         }
 
-        // Admin approve
-        window.adminApprove = async (requestId, userId) => {
+        // Admin approve request
+        window.adminApprove = async function(requestId, userId) {
             try {
                 const requestRef = ref(db, `requests/${userId}/${requestId}`);
                 await update(requestRef, {
                     statut: "en_rh",
-                    'workflow/admin': {
-                        approved: true,
-                        timestamp: new Date().toISOString(),
-                        by: currentUser.email
-                    }
+                    workflow: { admin: { approved: true, timestamp: new Date().toISOString() } }
                 });
-                await createNotification(userId, `Votre demande pour ${requestRef.date} (${requestRef.salle}) a été approuvée par l'admin et est en attente de validation RH.`, 'approval');
-                await createNotification('bedis.sghair@wkw-group.com', `Nouvelle demande en validation RH pour ${requestRef.prenom} ${requestRef.nom} (${requestRef.date}, ${requestRef.salle}).`, 'rh_pending');
+                await createNotification(userId, 'approval_admin', {
+                    date: (await get(requestRef)).val().date,
+                    room: (await get(requestRef)).val().salle
+                });
+                await createNotification('bedis.sghair@wkw-group.com', 'rh_pending', {
+                    name: (await get(requestRef)).val().prenom + ' ' + (await get(requestRef)).val().nom,
+                    date: (await get(requestRef)).val().date,
+                    room: (await get(requestRef)).val().salle
+                });
                 alert("Demande approuvée avec succès !");
             } catch (error) {
                 console.error("Error approving request:", error);
-                alert("Erreur lors de l'approbation : " + error.message);
             }
         };
 
-        // Admin reject
-        window.adminReject = async (requestId, userId, userName) => {
-            const commentaire = prompt(`Raison du rejet pour ${userName}:`);
-            if (commentaire && commentaire.trim()) {
+        // Admin reject request
+        window.adminReject = async function(requestId, userId, name) {
+            const reason = prompt(`Raison du rejet pour ${name} :`);
+            if (reason) {
                 try {
                     const requestRef = ref(db, `requests/${userId}/${requestId}`);
                     await update(requestRef, {
                         statut: "refuse",
-                        'workflow/admin': {
-                            approved: false,
-                            timestamp: new Date().toISOString(),
-                            by: currentUser.email,
-                            commentaire: commentaire.trim()
-                        }
+                        workflow: { admin: { approved: false, commentaire: reason, timestamp: new Date().toISOString() } }
                     });
-                    await createNotification(userId, `Votre demande pour ${requestRef.date} (${requestRef.salle}) a été rejetée par l'admin. Raison : ${commentaire.trim()}`, 'rejection');
+                    await createNotification(userId, 'rejection', {
+                        date: (await get(requestRef)).val().date,
+                        room: (await get(requestRef)).val().salle,
+                        reason: reason
+                    });
                     alert("Demande rejetée avec succès !");
                 } catch (error) {
                     console.error("Error rejecting request:", error);
-                    alert("Erreur lors du rejet : " + error.message);
                 }
             }
         };
 
-        // RH approve
-        window.rhApprove = async (requestId, userId) => {
+        // RH approve request
+        window.rhApprove = async function(requestId, userId) {
             try {
                 const requestRef = ref(db, `requests/${userId}/${requestId}`);
                 await update(requestRef, {
                     statut: "approuve",
-                    'workflow/rh': {
-                        approved: true,
-                        timestamp: new Date().toISOString(),
-                        by: currentUser.email
-                    }
+                    workflow: { rh: { approved: true, timestamp: new Date().toISOString() } }
                 });
-                await createNotification(userId, `Votre demande pour ${requestRef.date} (${requestRef.salle}) a été approuvée par RH.`, 'approval');
+                await createNotification(userId, 'approval_rh', {
+                    date: (await get(requestRef)).val().date,
+                    room: (await get(requestRef)).val().salle
+                });
                 alert("Demande approuvée avec succès !");
             } catch (error) {
                 console.error("Error approving request:", error);
-                alert("Erreur lors de l'approbation : " + error.message);
             }
         };
 
-        // RH reject
-        window.rhReject = async (requestId, userId) => {
-            const commentaire = prompt(`Raison du rejet :`);
-            if (commentaire && commentaire.trim()) {
+        // RH reject request
+        window.rhReject = async function(requestId, userId, name) {
+            const reason = prompt(`Raison du rejet pour ${name} :`);
+            if (reason) {
                 try {
                     const requestRef = ref(db, `requests/${userId}/${requestId}`);
                     await update(requestRef, {
                         statut: "refuse",
-                        'workflow/rh': {
-                            approved: false,
-                            timestamp: new Date().toISOString(),
-                            by: currentUser.email,
-                            commentaire: commentaire.trim()
-                        }
+                        workflow: { rh: { approved: false, commentaire: reason, timestamp: new Date().toISOString() } }
                     });
-                    await createNotification(userId, `Votre demande pour ${requestRef.date} (${requestRef.salle}) a été rejetée par RH. Raison : ${commentaire.trim()}`, 'rejection');
+                    await createNotification(userId, 'rejection', {
+                        date: (await get(requestRef)).val().date,
+                        room: (await get(requestRef)).val().salle,
+                        reason: reason
+                    });
                     alert("Demande rejetée avec succès !");
                 } catch (error) {
                     console.error("Error rejecting request:", error);
-                    alert("Erreur lors du rejet : " + error.message);
                 }
             }
         };
 
-        // Check for overlap
-        async function checkOverlap(date, heureDebut, heureFin, salle) {
-            const allRequestsSnapshot = await get(ref(db, 'requests'));
-            const allRequests = allRequestsSnapshot.val();
-            if (!allRequests) return false;
+        // Export to Excel
+        window.exportToExcel = function(tableId, filename) {
+            const table = document.getElementById(tableId);
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+            XLSX.writeFile(wb, filename);
+        };
 
-            for (const userId in allRequests) {
-                for (const requestId in allRequests[userId]) {
-                    const request = allRequests[userId][requestId];
+        // Export planning to Excel
+        window.exportPlanningToExcel = function() {
+            exportToExcel('planning-table', 'planning.xlsx');
+        };
+
+        // Check for time overlap
+        async function checkOverlap(date, heureDebut, heureFin, salle, excludeRequestId = null) {
+            const snapshot = await get(ref(db, `requests`));
+            const usersRequests = snapshot.val();
+            if (!usersRequests) return false;
+
+            for (const userId in usersRequests) {
+                for (const requestId in usersRequests[userId]) {
+                    if (excludeRequestId && requestId === excludeRequestId) continue;
+                    const request = usersRequests[userId][requestId];
                     if (request.statut === "approuve" && request.date === date && request.salle === salle) {
-                        const requestStartMin = timeToMinutes(request.heureDebut);
-                        const requestEndMin = timeToMinutes(request.heureFin);
-                        const newStartMin = timeToMinutes(heureDebut);
-                        const newEndMin = timeToMinutes(heureFin);
-                        if (Math.max(requestStartMin, newStartMin) < Math.min(requestEndMin, newEndMin)) {
+                        const existingStart = request.heureDebut;
+                        const existingEnd = request.heureFin;
+                        if (!(heureFin <= existingStart || heureDebut >= existingEnd)) {
                             return true;
                         }
                     }
@@ -1532,210 +1586,109 @@
             return false;
         }
 
-        // Helper to convert "HH:MM" to minutes
-        function timeToMinutes(time) {
-            const [hours, minutes] = time.split(':').map(Number);
-            return hours * 60 + minutes;
-        }
-
-        // Fix duration unit in Firebase
-        async function fixDurationUnit() {
-            const allRequestsRef = ref(db, 'requests');
-            const snapshot = await get(allRequestsRef);
-            const usersRequests = snapshot.val();
-            if (usersRequests) {
-                for (const userId in usersRequests) {
-                    for (const requestId in usersRequests[userId]) {
-                        const request = usersRequests[userId][requestId];
-                        if (request.dureeUnite === 'Heurs') {
-                            const requestRef = ref(db, `requests/${userId}/${requestId}`);
-                            await update(requestRef, { dureeUnite: 'heures' });
-                            console.log(`Fixed dureeUnite for request ${requestId}: Heurs → heures`);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Export all planning requests to Excel for admin and RH
-        window.exportPlanningToExcel = async function() {
-            if (currentRole !== "admin" && currentRole !== "rh") return;
-
-            const allRequestsRef = ref(db, 'requests');
-            const snapshot = await get(allRequestsRef);
-            const usersRequests = snapshot.val();
-            const rows = [];
-
-            if (usersRequests) {
-                Object.entries(usersRequests).forEach(([userId, userRequests]) => {
-                    Object.entries(userRequests).forEach(([requestId, request]) => {
-                        const durationDisplay = `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`;
-                        let statusText = "En attente";
-                        if (request.statut === "en_rh") statusText = "En validation RH";
-                        else if (request.statut === "approuve") statusText = "Approuvé";
-                        else if (request.statut === "refuse") statusText = "Refusé";
-                        let commentaire = '';
-                        if (request.workflow && request.workflow.admin && request.workflow.admin.commentaire) {
-                            commentaire = request.workflow.admin.commentaire;
-                        } else if (request.workflow && request.workflow.rh && request.workflow.rh.commentaire) {
-                            commentaire = request.workflow.rh.commentaire;
-                        }
-                        rows.push([
-                            request.date,
-                            `${request.prenom} ${request.nom}`,
-                            request.service || 'N/A',
-                            request.cause || 'N/A',
-                            durationDisplay,
-                            request.heureDebut,
-                            request.heureFin,
-                            request.salle,
-                            statusText,
-                            commentaire
-                        ]);
-                    });
-                });
-            }
-
-            // Create a temporary table for export
-            const tempTable = document.createElement('table');
-            tempTable.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Demandeur</th>
-                        <th>Service</th>
-                        <th>Cause</th>
-                        <th>Durée</th>
-                        <th>Heure Début</th>
-                        <th>Heure Fin</th>
-                        <th>Salle</th>
-                        <th>Statut</th>
-                        <th>Commentaire</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rows.map(row => `
-                        <tr>
-                            ${row.map(cell => `<td>${cell}</td>`).join('')}
-                        </tr>
-                    `).join('')}
-                </tbody>
-            `;
-
-            const wb = XLSX.utils.table_to_book(tempTable, { sheet: "Planning" });
-            XLSX.writeFile(wb, 'planning-demandes.xlsx');
-        };
-
-        // Export table to Excel (for other tables)
-        window.exportToExcel = function(tableId, fileName) {
-            const table = document.getElementById(tableId);
-            const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
-            XLSX.writeFile(wb, fileName);
-        };
-
-        // Reservation form submission for demandeur
-        if (document.getElementById('reservation-form')) {
-            document.getElementById("reservation-form").addEventListener("submit", async (e) => {
-                e.preventDefault();
-                if (currentRole !== "demandeur") return;
-                const date = document.getElementById("date").value;
-                const nom = document.getElementById("nom").value;
-                const prenom = document.getElementById("prenom").value;
-                const service = document.getElementById("service").value;
-                const cause = document.getElementById("cause").value;
-                const duree = document.getElementById("duree").value;
-                const dureeUnite = document.getElementById("duree-unite").value;
-                const heureDebut = document.getElementById("heure-debut").value;
-                const heureFin = document.getElementById("heure-fin").value;
-                const salle = document.getElementById("salle").value;
-                const errorMessage = document.getElementById("reservation-error-message");
-                const successMessage = document.getElementById("reservation-success-message");
-
-                if (heureDebut >= heureFin) {
-                    errorMessage.textContent = "L'heure de fin doit être postérieure à l'heure de début.";
-                    errorMessage.style.display = "block";
-                    successMessage.style.display = "none";
-                    return;
-                }
-
-                const isOverlapping = await checkOverlap(date, heureDebut, heureFin, salle);
-                if (isOverlapping) {
-                    errorMessage.textContent = "Cette date et heure sont déjà prises pour cette salle. Veuillez changer la date ou l'heure.";
-                    errorMessage.style.display = "block";
-                    successMessage.style.display = "none";
-                    return;
-                }
-
-                try {
-                    const requestsRef = ref(db, `requests/${currentUser.uid}`);
-                    const newRequestRef = await push(requestsRef, {
-                        date,
-                        nom,
-                        prenom,
-                        service,
-                        cause,
-                        duree,
-                        dureeUnite,
-                        heureDebut,
-                        heureFin,
-                        salle,
-                        statut: "en_attente",
-                        workflow: {
-                            admin: null,
-                            rh: null
-                        },
-                        createdAt: new Date().toISOString()
-                    });
-                    await createNotification(currentUser.uid, `Votre demande de réservation pour ${date} (${salle}) a été soumise avec succès.`, 'submission');
-                    await createNotification('walid.gharbi@wkw-group.com', `Nouvelle demande de réservation par ${prenom} ${nom} pour ${date} (${salle}).`, 'admin_pending');
-                    successMessage.textContent = "Demande envoyée avec succès !";
-                    successMessage.style.display = "block";
-                    errorMessage.style.display = "none";
-                    document.getElementById("reservation-form").reset();
-                    showSection('mes-demandes');
-                } catch (error) {
-                    errorMessage.textContent = "Erreur : " + error.message;
-                    errorMessage.style.display = "block";
-                    successMessage.style.display = "none";
-                }
-            });
-        }
-
-        // Login logic
-        document.getElementById("login-button").addEventListener("click", async () => {
-            const email = document.getElementById("email").value.trim();
-            const password = document.getElementById("password").value;
-            const errorMessage = document.getElementById("error-message");
-            errorMessage.style.display = "none";
-
+        // Handle login
+        document.getElementById('login-button').addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.style.display = 'none';
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 currentUser = userCredential.user;
                 currentRole = determineRole(email);
-                await fixDurationUnit();
                 showDashboard();
+                initCalendar();
             } catch (error) {
-                console.error("Login error:", error);
-                let errorText = "Erreur : ";
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    errorText += "Email ou mot de passe incorrect.";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorText += "Adresse email invalide.";
-                } else {
-                    errorText += error.message;
+                errorMessage.style.display = 'block';
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        errorMessage.textContent = "Email ou mot de passe incorrect.";
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage.textContent = "Adresse email invalide.";
+                        break;
+                    default:
+                        errorMessage.textContent = `Erreur : ${error.message}`;
                 }
-                errorMessage.textContent = errorText;
-                errorMessage.style.display = "block";
             }
         });
 
-        // Auth state listener
-        onAuthStateChanged(auth, async (user) => {
+        // Handle reservation form submission
+        document.getElementById('reservation-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorMessage = document.getElementById('reservation-error-message');
+            const successMessage = document.getElementById('reservation-success-message');
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            const date = document.getElementById('date').value;
+            const nom = document.getElementById('nom').value.trim();
+            const prenom = document.getElementById('prenom').value.trim();
+            const service = document.getElementById('service').value.trim();
+            const cause = document.getElementById('cause').value.trim();
+            const dureeUnite = document.getElementById('duree-unite').value;
+            const duree = document.getElementById('duree').value;
+            const heureDebut = document.getElementById('heure-debut').value;
+            const heureFin = document.getElementById('heure-fin').value;
+            const salle = document.getElementById('salle').value;
+
+            if (heureFin <= heureDebut) {
+                errorMessage.textContent = "L'heure de fin doit être postérieure à l'heure de début.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            const overlap = await checkOverlap(date, heureDebut, heureFin, salle);
+            if (overlap) {
+                errorMessage.textContent = "Cette date et heure sont déjà prises pour cette salle. Veuillez changer la date ou l'heure.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            try {
+                const requestsRef = ref(db, `requests/${currentUser.uid}`);
+                const newRequestRef = await push(requestsRef, {
+                    date,
+                    nom,
+                    prenom,
+                    service,
+                    cause,
+                    dureeUnite,
+                    duree: parseInt(duree),
+                    heureDebut,
+                    heureFin,
+                    salle,
+                    statut: "en_attente",
+                    createdAt: new Date().toISOString()
+                });
+
+                await createNotification(currentUser.uid, 'submission', { date, room: salle });
+                await createNotification('walid.gharbi@wkw-group.com', 'admin_pending', {
+                    name: `${prenom} ${nom}`,
+                    date,
+                    room: salle
+                });
+
+                successMessage.textContent = "Demande envoyée avec succès !";
+                successMessage.style.display = 'block';
+                document.getElementById('reservation-form').reset();
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            } catch (error) {
+                errorMessage.textContent = `Erreur : ${error.message}`;
+                errorMessage.style.display = 'block';
+            }
+        });
+
+        // Check auth state
+        onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 currentRole = determineRole(user.email);
-                await fixDurationUnit();
                 showDashboard();
+                initCalendar();
             } else {
                 showLogin();
             }
