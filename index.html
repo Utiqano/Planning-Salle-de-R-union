@@ -5,50 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WKW Automotive Tunisie - Système de Réservation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <style>
-        body {
-            background-color: #f3f4f6;
-            margin: 0;
-            font-family: Arial, sans-serif;
+        :root {
+            --primary-color: #dc2626;
+            --secondary-color: #10b981;
+            --background-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #d1d5db;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
         #login-section {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            animation: fadeIn 0.5s ease-in;
         }
+
         #dashboard {
             display: none;
         }
+
         .login-container {
-            background-color: #ffffff;
+            background-color: var(--card-bg);
             padding: 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow);
             width: 100%;
-            max-width: 24rem;
-            animation: slideIn 0.5s ease-out forwards;
+            max-width: 28rem;
+            transform: translateY(20px);
+            animation: slideUp 0.5s ease-out forwards;
         }
+
         .logo {
             display: flex;
             justify-content: center;
             margin-bottom: 1.5rem;
         }
+
         .logo img {
-            height: 3rem;
+            height: 3.5rem;
+            transition: transform 0.3s ease;
         }
+
+        .logo img:hover {
+            transform: scale(1.05);
+        }
+
         h2 {
-            font-size: 1.5rem;
-            font-weight: bold;
+            font-size: 1.75rem;
+            font-weight: 700;
             text-align: center;
-            color: #dc2626;
+            color: var(--primary-color);
             margin-bottom: 1.5rem;
         }
+
         .navbar {
-            background-color: #dc2626;
+            background-color: var(--primary-color);
             padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
+
         .navbar .hamburger {
             display: none;
             font-size: 1.5rem;
@@ -56,200 +92,339 @@
             cursor: pointer;
             padding: 0.5rem;
         }
+
         .navbar ul {
             list-style: none;
-            margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
         }
+
         .navbar ul.hidden {
             display: none;
         }
+
         .navbar li {
-            margin: 0 1rem;
+            margin: 0;
         }
+
         .navbar a {
             color: #ffffff;
             text-decoration: none;
             font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.3s, transform 0.2s;
         }
+
         .navbar a:hover {
-            text-decoration: underline;
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
+
         .container {
-            max-width: 64rem;
+            max-width: 80rem;
             margin: 2rem auto;
             padding: 0 1rem;
         }
+
         .section {
-            background-color: #ffffff;
+            background-color: var(--card-bg);
             padding: 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow);
             margin-bottom: 2rem;
-            animation: slideIn 0.5s ease-out forwards;
             display: none;
+            animation: fadeInUp 0.5s ease-out;
         }
+
         .section.active {
             display: block;
         }
+
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
+
         .form-group label {
             display: block;
-            color: #4b5563;
+            color: var(--text-color);
             font-size: 0.875rem;
-            font-weight: bold;
+            font-weight: 600;
             margin-bottom: 0.5rem;
         }
+
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
             border-radius: 0.375rem;
             font-size: 1rem;
-            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
+
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
-            border-color: #dc2626;
-            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+            outline: none;
         }
-        button {
-            background-color: #dc2626;
+
+        button, .btn {
+            background-color: var(--primary-color);
             color: #ffffff;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
             border: none;
             border-radius: 0.375rem;
             font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s;
-            animation: pulse 2s infinite;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
         }
-        button:hover {
+
+        button:hover, .btn:hover {
             background-color: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
+
         .error-message,
         .success-message {
             font-size: 0.875rem;
             margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
             display: none;
         }
+
         .error-message {
-            color: #dc2626;
+            background-color: #fee2e2;
+            color: #991b1b;
         }
+
         .success-message {
-            color: #15803d;
+            background-color: #d1fae5;
+            color: #065f46;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
+            background-color: var(--card-bg);
         }
+
         th, td {
-            padding: 0.75rem;
+            padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #d1d5db;
+            border-bottom: 1px solid var(--border-color);
         }
+
         th {
-            background-color: #f3f4f6;
-            color: #4b5563;
-            font-weight: bold;
+            background-color: #f9fafb;
+            color: var(--text-color);
+            font-weight: 700;
         }
+
         td {
-            color: #4b5563;
+            color: var(--text-color);
         }
+
+        tr {
+            animation: slideInLeft 0.5s ease-out;
+        }
+
         .status-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
             font-size: 0.75rem;
-            font-weight: bold;
+            font-weight: 600;
+            display: inline-block;
         }
+
         .status-en-attente { background-color: #fef3c7; color: #92400e; }
         .status-en-rh { background-color: #dbeafe; color: #1e40af; }
         .status-approuve { background-color: #d1fae5; color: #065f46; }
         .status-refuse { background-color: #fee2e2; color: #991b1b; }
+
         .commentaire {
             background-color: #f9fafb;
-            border-left: 3px solid #dc2626;
-            padding: 0.5rem;
+            border-left: 4px solid var(--primary-color);
+            padding: 0.75rem;
             margin-top: 0.5rem;
             font-style: italic;
         }
+
         .action-buttons {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.75rem;
         }
-        .btn {
-            padding: 0.25rem 0.5rem;
-            border: none;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+
         .btn-approve {
-            background-color: #10b981;
-            color: white;
+            background-color: var(--secondary-color);
         }
+
         .btn-approve:hover {
             background-color: #059669;
         }
+
         .btn-reject {
             background-color: #ef4444;
-            color: white;
         }
+
         .btn-reject:hover {
             background-color: #dc2626;
         }
-        .export-button {
-            background-color: #10b981;
-            color: #ffffff;
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.375rem;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
+
+        .export-button, .toggle-view-button {
+            background-color: var(--secondary-color);
             margin-bottom: 1rem;
         }
-        .export-button:hover {
+
+        .export-button:hover, .toggle-view-button:hover {
             background-color: #059669;
         }
+
+        #calendar {
+            margin-top: 1rem;
+            max-width: 100%;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .fc {
+            background-color: var(--card-bg);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .fc-event {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .fc-event:hover {
+            transform: scale(1.02);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            max-width: 90%;
+            width: 28rem;
+            box-shadow: var(--shadow);
+            animation: slideInModal 0.3s ease-out;
+        }
+
+        .modal-content h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .modal-content p {
+            margin-bottom: 0.5rem;
+        }
+
+        .close-modal {
+            background-color: #6b7280;
+            margin-top: 1rem;
+        }
+
+        .close-modal:hover {
+            background-color: #4b5563;
+        }
+
         @media (max-width: 768px) {
             .navbar .hamburger {
                 display: block;
             }
             .navbar ul {
                 flex-direction: column;
-                background-color: #dc2626;
+                background-color: var(--primary-color);
                 position: absolute;
                 top: 60px;
                 left: 0;
                 width: 100%;
                 padding: 1rem;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                box-shadow: var(--shadow);
             }
             .navbar li {
                 margin: 0.5rem 0;
                 text-align: center;
             }
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            th, td {
+                min-width: 120px;
+            }
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            .section {
+                padding: 1rem;
+            }
+            #calendar {
+                font-size: 0.9rem;
+            }
+            .fc .fc-daygrid-day {
+                padding: 0.5rem;
+            }
         }
-        @keyframes slideIn {
-            from { transform: translateY(50px); opacity: 0; }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                max-width: 90%;
+            }
+            .fc .fc-daygrid-day {
+                padding: 0.75rem;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInModal {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
@@ -257,7 +432,7 @@
     <div id="login-section">
         <div class="login-container">
             <div class="logo">
-                <img src="data:image/png;base64,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" alt="WKW Automotive Tunisie Logo">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzQimTQplX7Kt50BLRPCc8pRU1Ic1EZDPOKQ&s" alt="WKW Automotive Tunisie Logo">
             </div>
             <h2>WKW Automotive Tunisie</h2>
             <div id="error-message" class="error-message"></div>
@@ -283,8 +458,13 @@
         <div class="container">
             <div id="planning" class="section">
                 <h2>Planning Salle de Réunion</h2>
-                <button class="export-button" onclick="exportToExcel('planning-table', 'planning-demandes.xlsx')">Exporter vers Excel</button>
-                <table id="planning-table">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <button class="toggle-view-button" onclick="toggleView('calendar')">Vue Calendrier</button>
+                    <button class="toggle-view-button" onclick="toggleView('table')">Vue Tableau</button>
+                    <button class="export-button" onclick="exportToExcel('planning-table', 'planning-demandes.xlsx')">Exporter vers Excel</button>
+                </div>
+                <div id="calendar" style="display: none;"></div>
+                <table id="planning-table" style="display: table;">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -422,6 +602,21 @@
                 </table>
             </div>
         </div>
+        <div id="event-modal" class="modal">
+            <div class="modal-content">
+                <h3>Détails de l'Événement</h3>
+                <p><strong>Date:</strong> <span id="modal-date"></span></p>
+                <p><strong>Demandeur:</strong> <span id="modal-demandeur"></span></p>
+                <p><strong>Service:</strong> <span id="modal-service"></span></p>
+                <p><strong>Cause:</strong> <span id="modal-cause"></span></p>
+                <p><strong>Durée:</strong> <span id="modal-duree"></span></p>
+                <p><strong>Heure Début:</strong> <span id="modal-heure-debut"></span></p>
+                <p><strong>Heure Fin:</strong> <span id="modal-heure-fin"></span></p>
+                <p><strong>Salle:</strong> <span id="modal-salle"></span></p>
+                <p><strong>Statut:</strong> <span id="modal-statut"></span></p>
+                <button class="close-modal" onclick="closeModal()">Fermer</button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -472,6 +667,7 @@
             renderNavbar();
             renderSections();
             loadData();
+            initCalendar();
         }
 
         // Render navbar based on role
@@ -533,6 +729,101 @@
             if (window.innerWidth <= 768) {
                 document.getElementById('nav-menu').classList.add('hidden');
             }
+        };
+
+        // Toggle between calendar and table views
+        window.toggleView = function(view) {
+            const calendar = document.getElementById('calendar');
+            const table = document.getElementById('planning-table');
+            const exportButton = document.querySelector('#planning .export-button');
+            if (view === 'calendar') {
+                calendar.style.display = 'block';
+                table.style.display = 'none';
+                exportButton.style.display = 'none';
+            } else {
+                calendar.style.display = 'none';
+                table.style.display = 'table';
+                exportButton.style.display = 'inline-block';
+            }
+        };
+
+        // Initialize FullCalendar
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: window.innerWidth <= 768 ? 'dayGridDay' : 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,dayGridWeek,dayGridDay'
+                },
+                events: [],
+                eventClick: function(info) {
+                    showEventModal(info.event);
+                },
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                height: 'auto',
+                responsive: true
+            });
+            calendar.render();
+
+            // Load calendar events
+            const allRequestsRef = ref(db, `requests`);
+            onValue(allRequestsRef, (snapshot) => {
+                const events = [];
+                const usersRequests = snapshot.val();
+                if (usersRequests) {
+                    Object.entries(usersRequests).forEach(([userId, userRequests]) => {
+                        Object.entries(userRequests).forEach(([requestId, request]) => {
+                            if (request.statut === "approuve") {
+                                const start = `${request.date}T${request.heureDebut}`;
+                                const end = `${request.date}T${request.heureFin}`;
+                                events.push({
+                                    id: requestId,
+                                    title: `${request.prenom} ${request.nom} - ${request.salle}`,
+                                    start: start,
+                                    end: end,
+                                    extendedProps: {
+                                        demandeur: `${request.prenom} ${request.nom}`,
+                                        service: request.service,
+                                        cause: request.cause,
+                                        duree: `${request.duree} ${request.dureeUnite === 'minutes' ? 'min' : request.dureeUnite === 'heures' ? 'h' : 'jour'}${request.duree > 1 && request.dureeUnite !== 'heures' ? 's' : ''}`,
+                                        heureDebut: request.heureDebut,
+                                        heureFin: request.heureFin,
+                                        salle: request.salle,
+                                        statut: 'Approuvé'
+                                    }
+                                });
+                            }
+                        });
+                    });
+                }
+                calendar.getEvents().forEach(event => event.remove());
+                events.forEach(event => calendar.addEvent(event));
+            });
+        }
+
+        // Show event details in modal
+        function showEventModal(event) {
+            document.getElementById('modal-date').textContent = event.start.toISOString().split('T')[0];
+            document.getElementById('modal-demandeur').textContent = event.extendedProps.demandeur;
+            document.getElementById('modal-service').textContent = event.extendedProps.service;
+            document.getElementById('modal-cause').textContent = event.extendedProps.cause;
+            document.getElementById('modal-duree').textContent = event.extendedProps.duree;
+            document.getElementById('modal-heure-debut').textContent = event.extendedProps.heureDebut;
+            document.getElementById('modal-heure-fin').textContent = event.extendedProps.heureFin;
+            document.getElementById('modal-salle').textContent = event.extendedProps.salle;
+            document.getElementById('modal-statut').textContent = event.extendedProps.statut;
+            document.getElementById('event-modal').style.display = 'flex';
+        }
+
+        // Close modal
+        window.closeModal = function() {
+            document.getElementById('event-modal').style.display = 'none';
         };
 
         // Logout
@@ -818,20 +1109,17 @@
                 for (const requestId in allRequests[userId]) {
                     const request = allRequests[userId][requestId];
                     if (request.statut === "approuve" && request.date === date && request.salle === salle) {
-                        // Convert times to minutes since midnight
                         const requestStartMin = timeToMinutes(request.heureDebut);
                         const requestEndMin = timeToMinutes(request.heureFin);
                         const newStartMin = timeToMinutes(heureDebut);
                         const newEndMin = timeToMinutes(heureFin);
-
-                        // Check overlap
                         if (Math.max(requestStartMin, newStartMin) < Math.min(requestEndMin, newEndMin)) {
-                            return true; // Overlap found
+                            return true;
                         }
                     }
                 }
             }
-            return false; // No overlap
+            return false;
         }
 
         // Helper to convert "HH:MM" to minutes
@@ -865,7 +1153,6 @@
                     return;
                 }
 
-                // Check for overlap
                 const isOverlapping = await checkOverlap(date, heureDebut, heureFin, salle);
                 if (isOverlapping) {
                     errorMessage.textContent = "Cette date et heure sont déjà prises pour cette salle. Veuillez changer la date ou l'heure.";
