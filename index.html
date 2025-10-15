@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <title>WKW Automotive Tunisie - Système de Réservation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <style>
@@ -79,6 +80,131 @@
             margin-bottom: 1.5rem;
         }
 
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-color);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--border-color);
+            z-index: 1;
+            font-size: 1rem;
+            transition: color 0.3s;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+            outline: none;
+        }
+
+        .form-group input:focus + i,
+        .form-group input:not(:placeholder-shown) + i {
+            color: var(--primary-color);
+        }
+
+        .login-button-container {
+            position: relative;
+        }
+
+        button, .btn {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover, .btn:hover {
+            background-color: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* FIXED: Action Buttons - Smaller and Perfect Fit */
+        .action-buttons {
+            display: flex;
+            flex-direction: column; /* Always column for better space */
+            gap: 0.25rem; /* Smaller gap */
+            width: 100%;
+        }
+
+        .action-buttons .btn {
+            padding: 0.4rem 0.75rem; /* Much smaller padding */
+            font-size: 0.8rem; /* Smaller font */
+            width: 100%;
+            justify-content: center;
+            gap: 0.25rem; /* Smaller icon gap */
+        }
+
+        .btn-approve {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-approve:hover {
+            background-color: #059669;
+        }
+
+        .btn-reject {
+            background-color: #dc2626;
+        }
+
+        .btn-reject:hover {
+            background-color: #b91c1c;
+        }
+
+        .error-message,
+        .success-message {
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            display: none;
+        }
+
+        .error-message {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .success-message {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
         .navbar {
             background-color: var(--primary-color);
             padding: 1rem;
@@ -122,11 +248,19 @@
             padding: 0.5rem 1rem;
             border-radius: 0.25rem;
             transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .navbar a:hover {
             background-color: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
+        }
+
+        .navbar a i {
+            font-size: 1.1rem;
+            width: 1.1rem;
         }
 
         .notification-badge {
@@ -159,19 +293,6 @@
             display: block;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            color: var(--text-color);
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
@@ -185,49 +306,11 @@
             appearance: none;
         }
 
-        .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
             outline: none;
-        }
-
-        button, .btn {
-            background-color: var(--primary-color);
-            color: #ffffff;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.375rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover, .btn:hover {
-            background-color: #b91c1c;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .error-message,
-        .success-message {
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-            padding: 0.75rem;
-            border-radius: 0.375rem;
-            display: none;
-        }
-
-        .error-message {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        .success-message {
-            background-color: #d1fae5;
-            color: #065f46;
         }
 
         .compact-table {
@@ -248,6 +331,12 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        /* FIXED: Table Actions Column */
+        .compact-table td:last-child {
+            max-width: 120px; /* Fixed width for actions */
+            white-space: normal; /* Allow wrapping */
         }
 
         .compact-table th {
@@ -283,27 +372,6 @@
             padding: 0.75rem;
             margin-top: 0.5rem;
             font-style: italic;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .btn-approve {
-            background-color: var(--secondary-color);
-        }
-
-        .btn-approve:hover {
-            background-color: #059669;
-        }
-
-        .btn-reject {
-            background-color: #dc2626;
-        }
-
-        .btn-reject:hover {
-            background-color: #b91c1c;
         }
 
         .export-button, .toggle-view-button {
@@ -491,6 +559,16 @@
                 padding: 0.4rem 0.6rem;
                 font-size: 0.75rem;
             }
+            /* FIXED: Mobile Actions Column */
+            .compact-table td:last-child {
+                min-width: 90px;
+                padding: 0.25rem;
+            }
+            .action-buttons .btn {
+                padding: 0.35rem 0.5rem; /* Even smaller on mobile */
+                font-size: 0.7rem;
+                gap: 0.2rem;
+            }
             .form-group {
                 margin-bottom: 1rem;
             }
@@ -525,14 +603,6 @@
             .notification-item button {
                 width: 100%;
             }
-            .action-buttons {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            .action-buttons button {
-                width: 100%;
-                padding: 0.75rem;
-            }
         }
 
         @media (min-width: 769px) and (max-width: 1024px) {
@@ -564,6 +634,11 @@
             .compact-table td {
                 padding: 0.3rem 0.5rem;
                 font-size: 0.7rem;
+            }
+            /* FIXED: Extra small screen actions */
+            .action-buttons .btn {
+                padding: 0.3rem 0.4rem;
+                font-size: 0.65rem;
             }
             .notification-item {
                 padding: 0.5rem;
@@ -608,6 +683,7 @@
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
+      
     </style>
 </head>
 <body>
@@ -618,15 +694,19 @@
             </div>
             <h2>WKW Automotive Tunisie</h2>
             <div id="error-message" class="error-message"></div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" placeholder="Entrez votre email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" placeholder="Entrez votre mot de passe" required>
-            </div>
-            <button id="login-button">Connexion</button>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" placeholder="Entrez votre email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> Mot de passe</label>
+                    <input type="password" id="password" placeholder="Entrez votre mot de passe" required>
+                </div>
+                <button type="submit" id="login-button" class="login-button-container">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
+                </button>
+            </form>
         </div>
     </div>
 
@@ -639,17 +719,17 @@
         </div>
         <div class="container">
             <div id="notifications" class="section">
-                <h2>Notifications</h2>
-                <button class="btn" onclick="markAllNotificationsRead()">Marquer tout comme lu</button>
-                <button class="btn" onclick="clearAllNotifications()">Supprimer tout</button>
+                <h2><i class="fas fa-bell"></i> Notifications</h2>
+                <button class="btn" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Marquer tout comme lu</button>
+                <button class="btn" onclick="clearAllNotifications()"><i class="fas fa-trash"></i> Supprimer tout</button>
                 <div id="notification-list" class="notification-section"></div>
             </div>
             <div id="planning" class="section">
-                <h2>Planning Salle de Réunion</h2>
+                <h2><i class="fas fa-calendar-alt"></i> Planning Salle de Réunion</h2>
                 <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                    <button class="toggle-view-button" onclick="toggleView('calendar')">Vue Calendrier</button>
-                    <button class="toggle-view-button" onclick="toggleView('table')">Vue Tableau</button>
-                    <button class="export-button" onclick="exportPlanningToExcel()" id="export-planning-button">Exporter vers Excel</button>
+                    <button class="toggle-view-button" onclick="toggleView('calendar')"><i class="fas fa-calendar"></i> Vue Calendrier</button>
+                    <button class="toggle-view-button" onclick="toggleView('table')"><i class="fas fa-table"></i> Vue Tableau</button>
+                    <button class="export-button" onclick="exportPlanningToExcel()" id="export-planning-button"><i class="fas fa-file-excel"></i> Exporter vers Excel</button>
                     <div class="room-filter">
                         <select id="room-filter" onchange="filterCalendarEvents()">
                             <option value="all">Toutes les Salles</option>
@@ -667,7 +747,7 @@
                 </table>
             </div>
             <div id="mes-demandes" class="section">
-                <h2>Mes Demandes</h2>
+                <h2><i class="fas fa-list"></i> Mes Demandes</h2>
                 <table id="user-requests-table" class="compact-table">
                     <thead>
                         <tr>
@@ -688,32 +768,32 @@
                 </table>
             </div>
             <div id="reservation" class="section">
-                <h2>Réservation Salle de Réunion</h2>
+                <h2><i class="fas fa-plus-circle"></i> Réservation Salle de Réunion</h2>
                 <div id="reservation-error-message" class="error-message"></div>
                 <div id="reservation-success-message" class="success-message"></div>
                 <form id="reservation-form">
                     <div class="form-group">
-                        <label for="date">Date</label>
+                        <label for="date"><i class="fas fa-calendar-day"></i> Date</label>
                         <input type="date" id="date" required>
                     </div>
                     <div class="form-group">
-                        <label for="nom">Nom</label>
+                        <label for="nom"><i class="fas fa-user"></i> Nom</label>
                         <input type="text" id="nom" placeholder="Entrez votre nom" required>
                     </div>
                     <div class="form-group">
-                        <label for="prenom">Prénom</label>
+                        <label for="prenom"><i class="fas fa-user"></i> Prénom</label>
                         <input type="text" id="prenom" placeholder="Entrez votre prénom" required>
                     </div>
                     <div class="form-group">
-                        <label for="service">Service</label>
+                        <label for="service"><i class="fas fa-building"></i> Service</label>
                         <input type="text" id="service" placeholder="Entrez votre service" required>
                     </div>
                     <div class="form-group">
-                        <label for="cause">Cause de Réservation</label>
+                        <label for="cause"><i class="fas fa-sticky-note"></i> Cause de Réservation</label>
                         <textarea id="cause" placeholder="Entrez la raison de la réservation" required></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="duree-unite">Unité de Durée</label>
+                        <label for="duree-unite"><i class="fas fa-clock"></i> Unité de Durée</label>
                         <select id="duree-unite" required>
                             <option value="" disabled selected>Sélectionnez une unité</option>
                             <option value="minutes">Minutes</option>
@@ -722,31 +802,31 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="duree">Durée de Réservation</label>
+                        <label for="duree"><i class="fas fa-stopwatch"></i> Durée de Réservation</label>
                         <input type="number" id="duree" min="1" placeholder="Entrez la durée" required>
                     </div>
                     <div class="form-group">
-                        <label for="heure-debut">Heure Début</label>
+                        <label for="heure-debut"><i class="fas fa-clock"></i> Heure Début</label>
                         <input type="time" id="heure-debut" required>
                     </div>
                     <div class="form-group">
-                        <label for="heure-fin">Heure Fin</label>
+                        <label for="heure-fin"><i class="fas fa-clock"></i> Heure Fin</label>
                         <input type="time" id="heure-fin" required>
                     </div>
                     <div class="form-group">
-                        <label for="salle">Salle de Réunion</label>
+                        <label for="salle"><i class="fas fa-door-open"></i> Salle de Réunion</label>
                         <select id="salle" required>
                             <option value="" disabled selected>Sélectionnez une salle</option>
                             <option value="Salle Carthage">Salle Carthage</option>
                             <option value="Salle Utique">Salle Utique</option>
                         </select>
                     </div>
-                    <button type="submit">Envoyer Demande</button>
+                    <button type="submit"><i class="fas fa-paper-plane"></i> Envoyer Demande</button>
                 </form>
             </div>
             <div id="all-demandes-admin" class="section">
-                <h2>Toutes les Demandes (Admin)</h2>
-                <button class="export-button" onclick="exportToExcel('admin-requests-table', 'admin-demandes.xlsx')">Exporter vers Excel</button>
+                <h2><i class="fas fa-users-cog"></i> Toutes les Demandes (Admin)</h2>
+                <button class="export-button" onclick="exportToExcel('admin-requests-table', 'admin-demandes.xlsx')"><i class="fas fa-file-excel"></i> Exporter vers Excel</button>
                 <table id="admin-requests-table" class="compact-table">
                     <thead>
                         <tr>
@@ -766,8 +846,8 @@
                 </table>
             </div>
             <div id="all-demandes-rh" class="section">
-                <h2>Toutes les Demandes (RH)</h2>
-                <button class="export-button" onclick="exportToExcel('rh-requests-table', 'rh-demandes.xlsx')">Exporter vers Excel</button>
+                <h2><i class="fas fa-user-tie"></i> Toutes les Demandes (RH)</h2>
+                <button class="export-button" onclick="exportToExcel('rh-requests-table', 'rh-demandes.xlsx')"><i class="fas fa-file-excel"></i> Exporter vers Excel</button>
                 <table id="rh-requests-table" class="compact-table">
                     <thead>
                         <tr>
@@ -789,7 +869,7 @@
         </div>
         <div id="event-modal" class="modal">
             <div class="modal-content">
-                <h3>Détails de l'Événement</h3>
+                <h3><i class="fas fa-info-circle"></i> Détails de l'Événement</h3>
                 <p id="modal-date-row"><strong>Date:</strong> <span id="modal-date"></span></p>
                 <p id="modal-nom-row"><strong>Nom:</strong> <span id="modal-nom"></span></p>
                 <p id="modal-prenom-row"><strong>Prénom:</strong> <span id="modal-prenom"></span></p>
@@ -800,7 +880,7 @@
                 <p id="modal-heure-fin-row"><strong>Heure Fin:</strong> <span id="modal-heure-fin"></span></p>
                 <p id="modal-salle-row"><strong>Salle:</strong> <span id="modal-salle"></span></p>
                 <p id="modal-statut-row"><strong>Statut:</strong> <span id="modal-statut"></span></p>
-                <button class="close-modal" onclick="closeModal()">Fermer</button>
+                <button class="close-modal" onclick="closeModal()"><i class="fas fa-times"></i> Fermer</button>
             </div>
         </div>
     </div>
@@ -866,15 +946,15 @@
         function renderNavbar() {
             const menu = document.getElementById('nav-menu');
             let navHtml = '';
-            navHtml += `<li><a onclick="showSection('notifications')">Notifications<span id="notification-badge" class="notification-badge" style="display: none;"></span></a></li>`;
-            navHtml += `<li><a onclick="showSection('planning')">Planning Salle de Réunion</a></li>`;
+            navHtml += `<li><a onclick="showSection('notifications')"><i class="fas fa-bell"></i> Notifications<span id="notification-badge" class="notification-badge" style="display: none;"></span></a></li>`;
+            navHtml += `<li><a onclick="showSection('planning')"><i class="fas fa-calendar-alt"></i> Planning Salle de Réunion</a></li>`;
             if (currentRole === "demandeur") {
-                navHtml += `<li><a onclick="showSection('mes-demandes')">Mes Demandes</a></li>
-                            <li><a onclick="showSection('reservation')">Réservation Salle de Réunion</a></li>`;
+                navHtml += `<li><a onclick="showSection('mes-demandes')"><i class="fas fa-list"></i> Mes Demandes</a></li>
+                            <li><a onclick="showSection('reservation')"><i class="fas fa-plus-circle"></i> Réservation Salle de Réunion</a></li>`;
             } else {
-                navHtml += `<li><a onclick="showSection('all-demandes-${currentRole}')">Toutes les Demandes (${currentRole === 'admin' ? 'Admin' : 'RH'})</a></li>`;
+                navHtml += `<li><a onclick="showSection('all-demandes-${currentRole}')"><i class="fas fa-${currentRole === 'admin' ? 'users-cog' : 'user-tie'}"></i> Toutes les Demandes (${currentRole === 'admin' ? 'Admin' : 'RH'})</a></li>`;
             }
-            navHtml += `<li style="margin-left: auto;"><a onclick="logout()">Déconnexion</a></li>`;
+            navHtml += `<li style="margin-left: auto;"><a onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>`;
             menu.innerHTML = navHtml;
             updateNotificationBadge();
         }
@@ -1145,14 +1225,14 @@
                         notificationItem.innerHTML = `
                             <p>${notification.message} (${new Date(notification.timestamp).toLocaleString('fr-FR')})</p>
                             <div>
-                                ${notification.status === 'unread' ? `<button onclick="markNotificationRead('${notificationId}')">Marquer comme lu</button>` : ''}
-                                <button onclick="deleteNotification('${notificationId}')">Supprimer</button>
+                                ${notification.status === 'unread' ? `<button onclick="markNotificationRead('${notificationId}')"><i class="fas fa-check"></i> Marquer comme lu</button>` : ''}
+                                <button onclick="deleteNotification('${notificationId}')"><i class="fas fa-trash"></i> Supprimer</button>
                             </div>
                         `;
                         notificationList.appendChild(notificationItem);
                     });
                 } else {
-                    notificationList.innerHTML = `<p style="text-align: center; padding: 1rem;">Aucune notification.</p>`;
+                    notificationList.innerHTML = `<p style="text-align: center; padding: 1rem;"><i class="fas fa-bell-slash"></i> Aucune notification.</p>`;
                 }
                 updateNotificationBadge(unreadCount);
             });
@@ -1395,7 +1475,7 @@
             });
         }
 
-        // Load admin requests
+        // FIXED: Load admin requests with smaller buttons
         function loadAdminRequests() {
             const allRequestsRef = ref(db, `requests`);
             onValue(allRequestsRef, (snapshot) => {
@@ -1422,8 +1502,8 @@
                                     <td><span class="status-badge status-en-attente">En attente</span></td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn btn-approve" onclick="adminApprove('${requestId}', '${userId}')">Approuver</button>
-                                            <button class="btn btn-reject" onclick="adminReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')">Refuser</button>
+                                            <button class="btn btn-approve" onclick="adminApprove('${requestId}', '${userId}')"><i class="fas fa-check"></i> Approuver</button>
+                                            <button class="btn btn-reject" onclick="adminReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')"><i class="fas fa-times"></i> Refuser</button>
                                         </div>
                                     </td>
                                 `;
@@ -1438,7 +1518,7 @@
             });
         }
 
-        // Load RH requests
+        // FIXED: Load RH requests with smaller buttons
         function loadRhRequests() {
             const allRequestsRef = ref(db, `requests`);
             onValue(allRequestsRef, (snapshot) => {
@@ -1465,8 +1545,8 @@
                                     <td><span class="status-badge status-en-rh">En validation RH</span></td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn btn-approve" onclick="rhApprove('${requestId}', '${userId}')">Approuver</button>
-                                            <button class="btn btn-reject" onclick="rhReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')">Refuser</button>
+                                            <button class="btn btn-approve" onclick="rhApprove('${requestId}', '${userId}')"><i class="fas fa-check"></i> Approuver</button>
+                                            <button class="btn btn-reject" onclick="rhReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')"><i class="fas fa-times"></i> Refuser</button>
                                         </div>
                                     </td>
                                 `;
@@ -1601,7 +1681,8 @@
         }
 
         // Handle login
-        document.getElementById('login-button').addEventListener('click', async () => {
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('error-message');
