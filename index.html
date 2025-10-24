@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <style>
+        /* Existing styles remain unchanged */
         :root {
             --primary-color: #dc2626;
             --secondary-color: #10b981;
@@ -46,7 +47,7 @@
             display: none;
         }
 
-        .login-container {
+        .login-container, .password-change-container {
             background-color: var(--card-bg);
             padding: 2rem;
             border-radius: 0.75rem;
@@ -154,20 +155,19 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        /* FIXED: Action Buttons - Smaller and Perfect Fit */
         .action-buttons {
             display: flex;
-            flex-direction: column; /* Always column for better space */
-            gap: 0.25rem; /* Smaller gap */
+            flex-direction: column;
+            gap: 0.25rem;
             width: 100%;
         }
 
         .action-buttons .btn {
-            padding: 0.4rem 0.75rem; /* Much smaller padding */
-            font-size: 0.8rem; /* Smaller font */
+            padding: 0.4rem 0.75rem;
+            font-size: 0.8rem;
             width: 100%;
             justify-content: center;
-            gap: 0.25rem; /* Smaller icon gap */
+            gap: 0.25rem;
         }
 
         .btn-approve {
@@ -205,6 +205,7 @@
             color: #065f46;
         }
 
+        /* Rest of the existing styles */
         .navbar {
             background-color: var(--primary-color);
             padding: 1rem;
@@ -333,10 +334,9 @@
             white-space: nowrap;
         }
 
-        /* FIXED: Table Actions Column */
         .compact-table td:last-child {
-            max-width: 120px; /* Fixed width for actions */
-            white-space: normal; /* Allow wrapping */
+            max-width: 120px;
+            white-space: normal;
         }
 
         .compact-table th {
@@ -559,13 +559,12 @@
                 padding: 0.4rem 0.6rem;
                 font-size: 0.75rem;
             }
-            /* FIXED: Mobile Actions Column */
             .compact-table td:last-child {
                 min-width: 90px;
                 padding: 0.25rem;
             }
             .action-buttons .btn {
-                padding: 0.35rem 0.5rem; /* Even smaller on mobile */
+                padding: 0.35rem 0.5rem;
                 font-size: 0.7rem;
                 gap: 0.2rem;
             }
@@ -635,7 +634,6 @@
                 padding: 0.3rem 0.5rem;
                 font-size: 0.7rem;
             }
-            /* FIXED: Extra small screen actions */
             .action-buttons .btn {
                 padding: 0.3rem 0.4rem;
                 font-size: 0.65rem;
@@ -683,12 +681,11 @@
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
-      
     </style>
 </head>
 <body>
     <div id="login-section">
-        <div class="login-container">
+        <div class="login-container" id="login-container">
             <div class="logo">
                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzQimTQplX7Kt50BLRPCc8pRU1Ic1EZDPOKQ&s" alt="WKW Automotive Tunisie Logo">
             </div>
@@ -708,8 +705,34 @@
                 </button>
             </form>
         </div>
+        <div class="password-change-container" id="password-change-container" style="display: none;">
+            <div class="logo">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzQimTQplX7Kt50BLRPCc8pRU1Ic1EZDPOKQ&s" alt="WKW Automotive Tunisie Logo">
+            </div>
+            <h2>Changer votre mot de passe</h2>
+            <div id="password-error-message" class="error-message"></div>
+            <div id="password-success-message" class="success-message"></div>
+            <form id="password-change-form">
+                <div class="form-group">
+                    <label for="current-password"><i class="fas fa-lock"></i> Mot de passe actuel</label>
+                    <input type="password" id="current-password" placeholder="Entrez votre mot de passe actuel" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-password"><i class="fas fa-lock"></i> Nouveau mot de passe</label>
+                    <input type="password" id="new-password" placeholder="Entrez votre nouveau mot de passe" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password"><i class="fas fa-lock"></i> Confirmer le nouveau mot de passe</label>
+                    <input type="password" id="confirm-password" placeholder="Confirmez votre nouveau mot de passe" required>
+                </div>
+                <button type="submit" id="change-password-button">
+                    <i class="fas fa-save"></i> Mettre à jour le mot de passe
+                </button>
+            </form>
+        </div>
     </div>
 
+    <!-- Rest of the existing HTML (dashboard, navbar, sections, etc.) remains unchanged -->
     <div id="dashboard">
         <div class="navbar">
             <div class="hamburger" onclick="toggleNavbar()">☰</div>
@@ -734,7 +757,7 @@
                         <select id="room-filter" onchange="filterCalendarEvents()">
                             <option value="all">Toutes les Salles</option>
                             <option value="Salle Carthage">Salle Carthage</option>
- <option value="Salle Hanabail">Salle Hanabail</option>                       
+                            <option value="Salle Hanabail">Salle Hanabail</option>
                             <option value="Salle Utique">Salle Utique</option>
                         </select>
                     </div>
@@ -890,8 +913,8 @@
     <script type="module">
         // Import Firebase scripts
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-        import { getDatabase, ref, push, onValue, update, get, remove } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+        import { getDatabase, ref, set, get, onValue, update, push, remove } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -913,7 +936,7 @@
         let currentUser = null;
         let currentRole = null;
         let calendarInstance = null;
-        let currentSection = 'notifications'; // Default to notifications
+        let currentSection = 'notifications';
 
         // Role determination
         function determineRole(email) {
@@ -926,12 +949,22 @@
         function showLogin() {
             document.getElementById('login-section').style.display = 'flex';
             document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('password-change-container').style.display = 'none';
             currentUser = null;
             currentRole = null;
             if (calendarInstance) {
                 calendarInstance.destroy();
                 calendarInstance = null;
             }
+        }
+
+        // Show password change form
+        function showPasswordChange() {
+            document.getElementById('login-section').style.display = 'flex';
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('password-change-container').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
         }
 
         // Show dashboard
@@ -969,17 +1002,14 @@
 
         // Render sections based on role
         function renderSections() {
-            // Hide all sections initially
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.remove('active');
                 section.style.display = 'none';
             });
-            // Show notifications section by default
             const notificationsSection = document.getElementById('notifications');
             notificationsSection.style.display = 'block';
             notificationsSection.classList.add('active');
 
-            // Make sections available based on role, but keep them hidden
             if (currentRole === "demandeur") {
                 document.getElementById('planning').style.display = 'none';
                 document.getElementById('mes-demandes').style.display = 'none';
@@ -1011,19 +1041,15 @@
             const isMenuOpen = !menu.classList.contains('hidden');
             const section = document.getElementById(sectionId);
 
-            // Toggle section visibility
             if (sectionId === currentSection && section.classList.contains('active')) {
-                // If the same section is clicked and it's active, hide it
                 section.classList.remove('active');
                 section.style.display = 'none';
                 currentSection = null;
             } else {
-                // Hide all sections
                 document.querySelectorAll('.section').forEach(sec => {
                     sec.classList.remove('active');
                     sec.style.display = 'none';
                 });
-                // Show the clicked section
                 if (section) {
                     section.classList.add('active');
                     section.style.display = 'block';
@@ -1031,7 +1057,6 @@
                 }
             }
 
-            // Close the navbar menu on mobile after clicking
             if (isMobile && isMenuOpen) {
                 menu.classList.add('hidden');
             }
@@ -1176,10 +1201,8 @@
                 statut: document.getElementById('modal-statut-row')
             };
 
-            // Reset visibility
             Object.values(modalRows).forEach(row => row.classList.remove('visible'));
 
-            // Populate fields
             document.getElementById('modal-date').textContent = event.start ? event.start.toISOString().split('T')[0] : 'N/A';
             document.getElementById('modal-nom').textContent = event.extendedProps.nom || 'N/A';
             document.getElementById('modal-prenom').textContent = event.extendedProps.prenom || 'N/A';
@@ -1191,7 +1214,6 @@
             document.getElementById('modal-salle').textContent = event.extendedProps.salle || 'N/A';
             document.getElementById('modal-statut').textContent = event.extendedProps.statut || 'N/A';
 
-            // Show fields based on role
             if (currentRole === 'demandeur') {
                 modalRows.date.classList.add('visible');
                 modalRows.nom.classList.add('visible');
@@ -1322,6 +1344,9 @@
                         break;
                     case 'rejection':
                         message = `Votre demande pour ${params.date} (${params.room}) a été rejetée. Raison : ${params.reason}`;
+                        break;
+                    case 'password_changed':
+                        message = `Votre mot de passe a été mis à jour avec succès.`;
                         break;
                 }
                 await push(notificationsRef, {
@@ -1477,7 +1502,7 @@
             });
         }
 
-        // FIXED: Load admin requests with smaller buttons
+        // Load admin requests
         function loadAdminRequests() {
             const allRequestsRef = ref(db, `requests`);
             onValue(allRequestsRef, (snapshot) => {
@@ -1520,7 +1545,7 @@
             });
         }
 
-        // FIXED: Load RH requests with smaller buttons
+        // Load RH requests
         function loadRhRequests() {
             const allRequestsRef = ref(db, `requests`);
             onValue(allRequestsRef, (snapshot) => {
@@ -1666,14 +1691,17 @@
             const usersRequests = snapshot.val();
             if (!usersRequests) return false;
 
+            const startTime = new Date(`${date}T${heureDebut}`);
+            const endTime = new Date(`${date}T${heureFin}`);
+
             for (const userId in usersRequests) {
                 for (const requestId in usersRequests[userId]) {
                     if (excludeRequestId && requestId === excludeRequestId) continue;
                     const request = usersRequests[userId][requestId];
                     if (request.statut === "approuve" && request.date === date && request.salle === salle) {
-                        const existingStart = request.heureDebut;
-                        const existingEnd = request.heureFin;
-                        if (!(heureFin <= existingStart || heureDebut >= existingEnd)) {
+                        const existingStart = new Date(`${request.date}T${request.heureDebut}`);
+                        const existingEnd = new Date(`${request.date}T${request.heureFin}`);
+                        if (!(endTime <= existingStart || startTime >= existingEnd)) {
                             return true;
                         }
                     }
@@ -1681,6 +1709,82 @@
             }
             return false;
         }
+
+        // Check if user needs to change password
+        async function checkFirstLogin(user) {
+            const userRef = ref(db, `users/${user.uid}`);
+            const snapshot = await get(userRef);
+            const userData = snapshot.val();
+            return !userData || !userData.passwordChanged;
+        }
+
+        // Mark password as changed
+        async function markPasswordChanged(userId) {
+            try {
+                const userRef = ref(db, `users/${userId}`);
+                await set(userRef, {
+                    email: currentUser.email,
+                    role: currentRole,
+                    passwordChanged: true,
+                    lastUpdated: new Date().toISOString()
+                });
+            } catch (error) {
+                console.error("Error marking password as changed:", error);
+            }
+        }
+
+        // Handle password change
+        document.getElementById('password-change-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const errorMessage = document.getElementById('password-error-message');
+            const successMessage = document.getElementById('password-success-message');
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword !== confirmPassword) {
+                errorMessage.textContent = "Les nouveaux mots de passe ne correspondent pas.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                errorMessage.textContent = "Le nouveau mot de passe doit contenir au moins 6 caractères.";
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            try {
+                const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+                await reauthenticateWithCredential(currentUser, credential);
+                await updatePassword(currentUser, newPassword);
+                await markPasswordChanged(currentUser.uid);
+                await createNotification(currentUser.uid, 'password_changed', {});
+                successMessage.textContent = "Mot de passe mis à jour avec succès !";
+                successMessage.style.display = 'block';
+                document.getElementById('password-change-form').reset();
+                setTimeout(() => {
+                    showDashboard();
+                    initCalendar();
+                }, 2000);
+            } catch (error) {
+                errorMessage.style.display = 'block';
+                switch (error.code) {
+                    case 'auth/wrong-password':
+                        errorMessage.textContent = "Mot de passe actuel incorrect.";
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage.textContent = "Trop de tentatives. Veuillez réessayer plus tard.";
+                        break;
+                    default:
+                        errorMessage.textContent = `Erreur : ${error.message}`;
+                }
+                console.error("Error updating password:", error);
+            }
+        });
 
         // Handle login
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -1693,8 +1797,13 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 currentUser = userCredential.user;
                 currentRole = determineRole(email);
-                showDashboard();
-                initCalendar();
+                const isFirstLogin = await checkFirstLogin(currentUser);
+                if (isFirstLogin) {
+                    showPasswordChange();
+                } else {
+                    showDashboard();
+                    initCalendar();
+                }
             } catch (error) {
                 errorMessage.style.display = 'block';
                 switch (error.code) {
@@ -1725,7 +1834,7 @@
             const service = document.getElementById('service').value.trim();
             const cause = document.getElementById('cause').value.trim();
             const dureeUnite = document.getElementById('duree-unite').value;
-            const duree = document.getElementById('duree').value;
+              const duree = document.getElementById('duree').value;
             const heureDebut = document.getElementById('heure-debut').value;
             const heureFin = document.getElementById('heure-fin').value;
             const salle = document.getElementById('salle').value;
