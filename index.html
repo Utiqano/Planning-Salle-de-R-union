@@ -910,995 +910,1151 @@
         </div>
     </div>
 
-    <script type="module">
-        // Import Firebase scripts
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-        import { getDatabase, ref, set, get, onValue, update, push, remove } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+ <script type="module">
+    // Import Firebase scripts
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getDatabase, ref, set, get, onValue, update, push, remove } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAff6KWBN5_mTWRcNguxsPn9HJmWOeR518",
-            authDomain: "salles-de-reunion-91798.firebaseapp.com",
-            databaseURL: "https://salles-de-reunion-91798-default-rtdb.firebaseio.com",
-            projectId: "salles-de-reunion-91798",
-            storageBucket: "salles-de-reunion-91798.firebasestorage.app",
-            messagingSenderId: "536091875439",
-            appId: "1:536091875439:web:939181f1aefb90fb7e959a",
-            measurementId: "G-SMXB995150"
-        };
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAff6KWBN5_mTWRcNguxsPn9HJmWOeR518",
+        authDomain: "salles-de-reunion-91798.firebaseapp.com",
+        databaseURL: "https://salles-de-reunion-91798-default-rtdb.firebaseio.com",
+        projectId: "salles-de-reunion-91798",
+        storageBucket: "salles-de-reunion-91798.firebasestorage.app",
+        messagingSenderId: "536091875439",
+        appId: "1:536091875439:web:939181f1aefb90fb7e959a",
+        measurementId: "G-SMXB995150"
+    };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-        let currentUser = null;
-        let currentRole = null;
-        let calendarInstance = null;
-        let currentSection = 'notifications';
+    let currentUser = null;
+    let currentRole = null;
+    let calendarInstance = null;
+    let currentSection = 'notifications';
 
-        // Role determination
-        function determineRole(email) {
-            if (email === "walid.gharbi@wkw-group.com") return "admin";
-            if (email === "bedis.sghair@wkw-group.com") return "rh";
-            return "demandeur";
-        }
-
-        // Show login
-        function showLogin() {
-            document.getElementById('login-section').style.display = 'flex';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('login-container').style.display = 'block';
-            document.getElementById('password-change-container').style.display = 'none';
-            currentUser = null;
-            currentRole = null;
-            if (calendarInstance) {
-                calendarInstance.destroy();
-                calendarInstance = null;
+    // Role determination
+    async function determineRole(uid) {
+        try {
+            console.log(`Determining role for UID: ${uid}`);
+            const userRef = ref(db, `users/${uid}`);
+            const snapshot = await get(userRef);
+            const userData = snapshot.val();
+            if (userData && userData.role) {
+                console.log(`Role found in database: ${userData.role}`);
+                return userData.role;
             }
-        }
-
-        // Show password change form
-        function showPasswordChange() {
-            document.getElementById('login-section').style.display = 'flex';
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('password-change-container').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-        }
-
-        // Show dashboard
-        function showDashboard() {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            renderNavbar();
-            renderSections();
-            loadData();
-            loadNotifications();
-        }
-
-        // Render navbar based on role
-        function renderNavbar() {
-            const menu = document.getElementById('nav-menu');
-            let navHtml = '';
-            navHtml += `<li><a onclick="showSection('notifications')"><i class="fas fa-bell"></i> Notifications<span id="notification-badge" class="notification-badge" style="display: none;"></span></a></li>`;
-            navHtml += `<li><a onclick="showSection('planning')"><i class="fas fa-calendar-alt"></i> Planning Salle de Réunion</a></li>`;
-            if (currentRole === "demandeur") {
-                navHtml += `<li><a onclick="showSection('mes-demandes')"><i class="fas fa-list"></i> Mes Demandes</a></li>
-                            <li><a onclick="showSection('reservation')"><i class="fas fa-plus-circle"></i> Réservation Salle de Réunion</a></li>`;
-            } else {
-                navHtml += `<li><a onclick="showSection('all-demandes-${currentRole}')"><i class="fas fa-${currentRole === 'admin' ? 'users-cog' : 'user-tie'}"></i> Toutes les Demandes (${currentRole === 'admin' ? 'Admin' : 'RH'})</a></li>`;
-            }
-            navHtml += `<li style="margin-left: auto;"><a onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>`;
-            menu.innerHTML = navHtml;
-            updateNotificationBadge();
-        }
-
-        // Toggle navbar on mobile
-        window.toggleNavbar = function() {
-            const menu = document.getElementById('nav-menu');
-            menu.classList.toggle('hidden');
-        };
-
-        // Render sections based on role
-        function renderSections() {
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-                section.style.display = 'none';
+            // Fallback for new users
+            const email = currentUser ? currentUser.email : (await getAuth().currentUser).email;
+            console.log(`No role in database, using email fallback: ${email}`);
+            const role = email === "walid.gharbi@wkw-group.com" ? "admin" :
+                         email === "rh@wkw.com" ? "rh" : "demandeur";
+            // Initialize user data if not exists
+            await set(userRef, {
+                email: email,
+                role: role,
+                passwordChanged: false,
+                lastUpdated: new Date().toISOString()
             });
-            const notificationsSection = document.getElementById('notifications');
-            notificationsSection.style.display = 'block';
-            notificationsSection.classList.add('active');
-
-            if (currentRole === "demandeur") {
-                document.getElementById('planning').style.display = 'none';
-                document.getElementById('mes-demandes').style.display = 'none';
-                document.getElementById('reservation').style.display = 'none';
-                document.getElementById('all-demandes-admin').style.display = 'none';
-                document.getElementById('all-demandes-rh').style.display = 'none';
-                document.getElementById('export-planning-button').style.display = 'none';
-            } else if (currentRole === "admin") {
-                document.getElementById('planning').style.display = 'none';
-                document.getElementById('mes-demandes').style.display = 'none';
-                document.getElementById('reservation').style.display = 'none';
-                document.getElementById('all-demandes-admin').style.display = 'none';
-                document.getElementById('all-demandes-rh').style.display = 'none';
-                document.getElementById('export-planning-button').style.display = 'none';
-            } else if (currentRole === "rh") {
-                document.getElementById('planning').style.display = 'none';
-                document.getElementById('mes-demandes').style.display = 'none';
-                document.getElementById('reservation').style.display = 'none';
-                document.getElementById('all-demandes-admin').style.display = 'none';
-                document.getElementById('all-demandes-rh').style.display = 'none';
-                document.getElementById('export-planning-button').style.display = 'none';
-            }
+            console.log(`Initialized user data with role: ${role}`);
+            return role;
+        } catch (error) {
+            console.error("Error determining role:", error);
+            return "demandeur"; // Default to demandeur on error
         }
+    }
 
-        // Show or hide specific section
-        window.showSection = function(sectionId) {
-            const menu = document.getElementById('nav-menu');
-            const isMobile = window.innerWidth <= 768;
-            const isMenuOpen = !menu.classList.contains('hidden');
-            const section = document.getElementById(sectionId);
-
-            if (sectionId === currentSection && section.classList.contains('active')) {
-                section.classList.remove('active');
-                section.style.display = 'none';
-                currentSection = null;
-            } else {
-                document.querySelectorAll('.section').forEach(sec => {
-                    sec.classList.remove('active');
-                    sec.style.display = 'none';
-                });
-                if (section) {
-                    section.classList.add('active');
-                    section.style.display = 'block';
-                    currentSection = sectionId;
-                }
-            }
-
-            if (isMobile && isMenuOpen) {
-                menu.classList.add('hidden');
-            }
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        // Toggle between calendar and table views
-        window.toggleView = function(view) {
-            const calendar = document.getElementById('calendar');
-            const table = document.getElementById('planning-table');
-            const exportButton = document.getElementById('export-planning-button');
-            if (view === 'calendar') {
-                calendar.style.display = 'block';
-                table.style.display = 'none';
-                exportButton.style.display = currentRole === 'demandeur' ? 'none' : 'inline-block';
-                if (calendarInstance) {
-                    calendarInstance.render();
-                    filterCalendarEvents();
-                }
-            } else {
-                calendar.style.display = 'none';
-                table.style.display = 'table';
-                exportButton.style.display = currentRole === 'demandeur' ? 'none' : 'inline-block';
-            }
-        };
-
-        // Initialize FullCalendar
-        function initCalendar() {
-            const calendarEl = document.getElementById('calendar');
-            calendarEl.innerHTML = '<div class="loading-spinner" id="calendar-loading"></div>';
-            calendarInstance = new FullCalendar.Calendar(calendarEl, {
-                initialView: window.innerWidth <= 768 ? 'dayGridDay' : 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,dayGridWeek,dayGridDay'
-                },
-                events: [],
-                eventClick: function(info) {
-                    showEventModal(info.event);
-                },
-                eventTimeFormat: {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                },
-                height: 'auto',
-                viewDidMount: function() {
-                    document.querySelector('.fc').style.opacity = '1';
-                },
-                viewWillUnmount: function() {
-                    document.querySelector('.fc').style.opacity = '0';
-                }
-            });
-            calendarInstance.render();
-            loadCalendarEvents();
-        }
-
-        // Load and filter calendar events
-        function loadCalendarEvents() {
-            const calendarEl = document.getElementById('calendar');
-            const loadingSpinner = document.getElementById('calendar-loading');
-            if (loadingSpinner) {
-                loadingSpinner.style.display = 'block';
-            }
-            const allRequestsRef = ref(db, `requests`);
-            onValue(allRequestsRef, (snapshot) => {
-                const events = [];
-                const usersRequests = snapshot.val();
-                const roomFilter = document.getElementById('room-filter').value;
-                if (usersRequests) {
-                    Object.entries(usersRequests).forEach(([userId, userRequests]) => {
-                        Object.entries(userRequests).forEach(([requestId, request]) => {
-                            if (request.statut === "approuve" && request.salle && (roomFilter === 'all' || request.salle === roomFilter)) {
-                                const start = `${request.date}T${request.heureDebut}`;
-                                const end = `${request.date}T${request.heureFin}`;
-                                const durationDisplay = `${request.duree} ${request.dureeUnite}`;
-                                events.push({
-                                    id: requestId,
-                                    title: currentRole === 'demandeur' ? `Réservé - ${request.salle}` : `${request.prenom} ${request.nom} - ${request.salle}`,
-                                    start: start,
-                                    end: end,
-                                    extendedProps: {
-                                        nom: request.nom || 'N/A',
-                                        prenom: request.prenom || 'N/A',
-                                        service: currentRole === 'demandeur' ? 'N/A' : request.service || 'N/A',
-                                        cause: currentRole === 'demandeur' ? 'N/A' : request.cause || 'N/A',
-                                        duree: currentRole === 'demandeur' ? 'N/A' : durationDisplay,
-                                        heureDebut: request.heureDebut,
-                                        heureFin: request.heureFin,
-                                        salle: request.salle,
-                                        statut: 'Approuvé'
-                                    }
-                                });
-                            }
-                        });
-                    });
-                }
-                if (calendarInstance) {
-                    calendarInstance.getEvents().forEach(event => event.remove());
-                    if (events.length === 0) {
-                        calendarEl.innerHTML = `<p style="text-align: center; padding: 2rem;">Aucune réservation approuvée.</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>`;
-                    } else {
-                        calendarEl.innerHTML = '<div class="loading-spinner" id="calendar-loading"></div>';
-                        calendarInstance.render();
-                        events.forEach((event, index) => {
-                            setTimeout(() => {
-                                calendarInstance.addEvent(event);
-                            }, index * 100);
-                        });
-                    }
-                }
-                if (loadingSpinner) {
-                    setTimeout(() => {
-                        loadingSpinner.style.display = 'none';
-                    }, events.length * 100 + 300);
-                }
-            }, (error) => {
-                console.error("Error loading calendar events:", error);
-                calendarEl.innerHTML = `<p style="text-align: center; padding: 2rem; color: #991b1b;">Erreur : ${error.message}</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>`;
-            });
-        }
-
-        // Filter calendar events by room
-        window.filterCalendarEvents = function() {
-            loadCalendarEvents();
-        };
-
-        // Show event details in modal
-        function showEventModal(event) {
-            const modalRows = {
-                date: document.getElementById('modal-date-row'),
-                nom: document.getElementById('modal-nom-row'),
-                prenom: document.getElementById('modal-prenom-row'),
-                service: document.getElementById('modal-service-row'),
-                cause: document.getElementById('modal-cause-row'),
-                duree: document.getElementById('modal-duree-row'),
-                heureDebut: document.getElementById('modal-heure-debut-row'),
-                heureFin: document.getElementById('modal-heure-fin-row'),
-                salle: document.getElementById('modal-salle-row'),
-                statut: document.getElementById('modal-statut-row')
-            };
-
-            Object.values(modalRows).forEach(row => row.classList.remove('visible'));
-
-            document.getElementById('modal-date').textContent = event.start ? event.start.toISOString().split('T')[0] : 'N/A';
-            document.getElementById('modal-nom').textContent = event.extendedProps.nom || 'N/A';
-            document.getElementById('modal-prenom').textContent = event.extendedProps.prenom || 'N/A';
-            document.getElementById('modal-service').textContent = event.extendedProps.service || 'N/A';
-            document.getElementById('modal-cause').textContent = event.extendedProps.cause || 'N/A';
-            document.getElementById('modal-duree').textContent = event.extendedProps.duree || 'N/A';
-            document.getElementById('modal-heure-debut').textContent = event.extendedProps.heureDebut || 'N/A';
-            document.getElementById('modal-heure-fin').textContent = event.extendedProps.heureFin || 'N/A';
-            document.getElementById('modal-salle').textContent = event.extendedProps.salle || 'N/A';
-            document.getElementById('modal-statut').textContent = event.extendedProps.statut || 'N/A';
-
-            if (currentRole === 'demandeur') {
-                modalRows.date.classList.add('visible');
-                modalRows.nom.classList.add('visible');
-                modalRows.prenom.classList.add('visible');
-                modalRows.heureDebut.classList.add('visible');
-                modalRows.heureFin.classList.add('visible');
-                modalRows.salle.classList.add('visible');
-            } else {
-                Object.values(modalRows).forEach(row => row.classList.add('visible'));
-            }
-
-            document.getElementById('event-modal').style.display = 'flex';
-        }
-
-        // Close modal
-        window.closeModal = function() {
-            document.getElementById('event-modal').style.display = 'none';
-        };
-
-        // Load notifications
-        function loadNotifications() {
-            const notificationList = document.getElementById('notification-list');
-            const notificationsRef = ref(db, `notifications/${currentUser.uid}`);
-            onValue(notificationsRef, (snapshot) => {
-                notificationList.innerHTML = '';
-                const notifications = snapshot.val();
-                let unreadCount = 0;
-                if (notifications) {
-                    Object.entries(notifications).forEach(([notificationId, notification]) => {
-                        if (notification.status === 'unread') unreadCount++;
-                        const notificationItem = document.createElement('div');
-                        notificationItem.className = `notification-item ${notification.status}`;
-                        notificationItem.innerHTML = `
-                            <p>${notification.message} (${new Date(notification.timestamp).toLocaleString('fr-FR')})</p>
-                            <div>
-                                ${notification.status === 'unread' ? `<button onclick="markNotificationRead('${notificationId}')"><i class="fas fa-check"></i> Marquer comme lu</button>` : ''}
-                                <button onclick="deleteNotification('${notificationId}')"><i class="fas fa-trash"></i> Supprimer</button>
-                            </div>
-                        `;
-                        notificationList.appendChild(notificationItem);
-                    });
-                } else {
-                    notificationList.innerHTML = `<p style="text-align: center; padding: 1rem;"><i class="fas fa-bell-slash"></i> Aucune notification.</p>`;
-                }
-                updateNotificationBadge(unreadCount);
-            });
-        }
-
-        // Update notification badge
-        function updateNotificationBadge(unreadCount = 0) {
-            const badge = document.getElementById('notification-badge');
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount;
-                badge.style.display = 'inline-block';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
-        // Mark notification as read
-        window.markNotificationRead = async function(notificationId) {
-            try {
-                const notificationRef = ref(db, `notifications/${currentUser.uid}/${notificationId}`);
-                await update(notificationRef, { status: 'read' });
-            } catch (error) {
-                console.error("Error marking notification as read:", error);
-            }
-        };
-
-        // Delete notification
-        window.deleteNotification = async function(notificationId) {
-            try {
-                const notificationRef = ref(db, `notifications/${currentUser.uid}/${notificationId}`);
-                await remove(notificationRef);
-            } catch (error) {
-                console.error("Error deleting notification:", error);
-            }
-        };
-
-        // Mark all notifications as read
-        window.markAllNotificationsRead = async function() {
-            try {
-                const notificationsRef = ref(db, `notifications/${currentUser.uid}`);
-                const snapshot = await get(notificationsRef);
-                const notifications = snapshot.val();
-                if (notifications) {
-                    const updates = {};
-                    Object.keys(notifications).forEach(notificationId => {
-                        updates[`${notificationId}/status`] = 'read';
-                    });
-                    await update(notificationsRef, updates);
-                }
-            } catch (error) {
-                console.error("Error marking all notifications as read:", error);
-            }
-        };
-
-        // Clear all notifications
-        window.clearAllNotifications = async function() {
-            try {
-                const notificationsRef = ref(db, `notifications/${currentUser.uid}`);
-                await remove(notificationsRef);
-            } catch (error) {
-                console.error("Error clearing notifications:", error);
-            }
-        };
-
-        // Create notification
-        async function createNotification(userId, type, params = {}) {
-            try {
-                const notificationsRef = ref(db, `notifications/${userId}`);
-                let message = '';
-                switch (type) {
-                    case 'submission':
-                        message = `Votre demande de réservation pour ${params.date} (${params.room}) a été soumise avec succès.`;
-                        break;
-                    case 'admin_pending':
-                        message = `Nouvelle demande de réservation par ${params.name} pour ${params.date} (${params.room}).`;
-                        break;
-                    case 'approval_admin':
-                        message = `Votre demande pour ${params.date} (${params.room}) a été approuvée par l'admin et est en attente de validation RH.`;
-                        break;
-                    case 'rh_pending':
-                        message = `Nouvelle demande en validation RH pour ${params.name} (${params.date}, ${params.room}).`;
-                        break;
-                    case 'approval_rh':
-                        message = `Votre demande pour ${params.date} (${params.room}) a été approuvée par RH.`;
-                        break;
-                    case 'rejection':
-                        message = `Votre demande pour ${params.date} (${params.room}) a été rejetée. Raison : ${params.reason}`;
-                        break;
-                    case 'password_changed':
-                        message = `Votre mot de passe a été mis à jour avec succès.`;
-                        break;
-                }
-                await push(notificationsRef, {
-                    message,
-                    type,
-                    status: 'unread',
-                    timestamp: new Date().toISOString()
-                });
-            } catch (error) {
-                console.error("Error creating notification:", error);
-            }
-        }
-
-        // Logout
-        window.logout = async () => {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error("Logout error:", error);
-            }
-            showLogin();
-        };
-
-        // Load data based on role
-        function loadData() {
-            loadPlanning();
-            if (currentRole === "demandeur") {
-                loadUserRequests();
-            } else if (currentRole === "admin") {
-                loadAdminRequests();
-            } else if (currentRole === "rh") {
-                loadRhRequests();
-            }
-        }
-
-        // Load approved requests for Planning section
-        function loadPlanning() {
-            const head = document.getElementById("planning-table-head");
-            const body = document.getElementById("planning-body");
-            if (currentRole === "demandeur") {
-                head.innerHTML = `
-                    <tr>
-                        <th>Date</th>
-                        <th>Heure Début</th>
-                        <th>Heure Fin</th>
-                        <th>Salle</th>
-                    </tr>
-                `;
-            } else {
-                head.innerHTML = `
-                    <tr>
-                        <th>Date</th>
-                        <th>Demandeur</th>
-                        <th>Service</th>
-                        <th>Cause</th>
-                        <th>Durée</th>
-                        <th>Heure Début</th>
-                        <th>Heure Fin</th>
-                        <th>Salle</th>
-                        <th>Statut</th>
-                    </tr>
-                `;
-            }
-            const allRequestsRef = ref(db, `requests`);
-            onValue(allRequestsRef, (snapshot) => {
-                body.innerHTML = "";
-                const usersRequests = snapshot.val();
-                let approvedCount = 0;
-                if (usersRequests) {
-                    Object.entries(usersRequests).forEach(([userId, userRequests]) => {
-                        Object.entries(userRequests).forEach(([requestId, request]) => {
-                            if (request.statut === "approuve") {
-                                approvedCount++;
-                                const durationDisplay = `${request.duree} ${request.dureeUnite}`;
-                                const row = document.createElement("tr");
-                                if (currentRole === "demandeur") {
-                                    row.innerHTML = `
-                                        <td>${request.date}</td>
-                                        <td>${request.heureDebut}</td>
-                                        <td>${request.heureFin}</td>
-                                        <td>${request.salle}</td>
-                                    `;
-                                } else {
-                                    row.innerHTML = `
-                                        <td>${request.date}</td>
-                                        <td>${request.prenom} ${request.nom}</td>
-                                        <td>${request.service || 'N/A'}</td>
-                                        <td>${request.cause || 'N/A'}</td>
-                                        <td>${durationDisplay}</td>
-                                        <td>${request.heureDebut}</td>
-                                        <td>${request.heureFin}</td>
-                                        <td>${request.salle}</td>
-                                        <td><span class="status-badge status-approuve">Approuvé</span></td>
-                                    `;
-                                }
-                                body.appendChild(row);
-                            }
-                        });
-                    });
-                }
-                if (approvedCount === 0) {
-                    const colspan = currentRole === "demandeur" ? 4 : 9;
-                    body.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; padding: 2rem;">Aucune réservation approuvée.</td></tr>`;
-                }
-            });
-        }
-
-        // Load user requests for demandeur
-        function loadUserRequests() {
-            const userRequestsRef = ref(db, `requests/${currentUser.uid}`);
-            onValue(userRequestsRef, (snapshot) => {
-                const body = document.getElementById("user-requests-body");
-                body.innerHTML = "";
-                const requests = snapshot.val();
-                if (requests) {
-                    Object.entries(requests).forEach(([requestId, request]) => {
-                        let statusClass = "status-en-attente";
-                        let statusText = "En attente";
-                        if (request.statut === "en_rh") {
-                            statusClass = "status-en-rh";
-                            statusText = "En validation RH";
-                        } else if (request.statut === "approuve") {
-                            statusClass = "status-approuve";
-                            statusText = "Approuvé";
-                        } else if (request.statut === "refuse") {
-                            statusClass = "status-refuse";
-                            statusText = "Refusé";
-                        }
-                        let commentaireHtml = "";
-                        if (request.workflow && request.workflow.admin && request.workflow.admin.commentaire) {
-                            commentaireHtml = `<div class="commentaire">${request.workflow.admin.commentaire}</div>`;
-                        }
-                        const durationDisplay = `${request.duree} ${request.dureeUnite}`;
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td>${request.date}</td>
-                            <td>${request.nom}</td>
-                            <td>${request.prenom}</td>
-                            <td>${request.service || 'N/A'}</td>
-                            <td>${request.cause || 'N/A'}</td>
-                            <td>${durationDisplay}</td>
-                            <td>${request.heureDebut}</td>
-                            <td>${request.heureFin}</td>
-                            <td>${request.salle}</td>
-                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                            <td>${commentaireHtml}</td>
-                        `;
-                        body.appendChild(row);
-                    });
-                } else {
-                    body.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 2rem;">Aucune demande trouvée.</td></tr>`;
-                }
-            });
-        }
-
-        // Load admin requests
-        function loadAdminRequests() {
-            const allRequestsRef = ref(db, `requests`);
-            onValue(allRequestsRef, (snapshot) => {
-                const body = document.getElementById("admin-requests-body");
-                body.innerHTML = "";
-                const usersRequests = snapshot.val();
-                let pendingCount = 0;
-                if (usersRequests) {
-                    Object.entries(usersRequests).forEach(([userId, userRequests]) => {
-                        Object.entries(userRequests).forEach(([requestId, request]) => {
-                            if (request.statut === "en_attente") {
-                                pendingCount++;
-                                const durationDisplay = `${request.duree} ${request.dureeUnite}`;
-                                const row = document.createElement("tr");
-                                row.innerHTML = `
-                                    <td>${request.date}</td>
-                                    <td>${request.prenom} ${request.nom}</td>
-                                    <td>${request.service || 'N/A'}</td>
-                                    <td>${request.cause || 'N/A'}</td>
-                                    <td>${durationDisplay}</td>
-                                    <td>${request.heureDebut}</td>
-                                    <td>${request.heureFin}</td>
-                                    <td>${request.salle}</td>
-                                    <td><span class="status-badge status-en-attente">En attente</span></td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn btn-approve" onclick="adminApprove('${requestId}', '${userId}')"><i class="fas fa-check"></i> Approuver</button>
-                                            <button class="btn btn-reject" onclick="adminReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')"><i class="fas fa-times"></i> Refuser</button>
-                                        </div>
-                                    </td>
-                                `;
-                                body.appendChild(row);
-                            }
-                        });
-                    });
-                }
-                if (pendingCount === 0) {
-                    body.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem;">Aucune demande en attente.</td></tr>`;
-                }
-            });
-        }
-
-        // Load RH requests
-        function loadRhRequests() {
-            const allRequestsRef = ref(db, `requests`);
-            onValue(allRequestsRef, (snapshot) => {
-                const body = document.getElementById("rh-requests-body");
-                body.innerHTML = "";
-                const usersRequests = snapshot.val();
-                let pendingCount = 0;
-                if (usersRequests) {
-                    Object.entries(usersRequests).forEach(([userId, userRequests]) => {
-                        Object.entries(userRequests).forEach(([requestId, request]) => {
-                            if (request.statut === "en_rh") {
-                                pendingCount++;
-                                const durationDisplay = `${request.duree} ${request.dureeUnite}`;
-                                const row = document.createElement("tr");
-                                row.innerHTML = `
-                                    <td>${request.date}</td>
-                                    <td>${request.prenom} ${request.nom}</td>
-                                    <td>${request.service || 'N/A'}</td>
-                                    <td>${request.cause || 'N/A'}</td>
-                                    <td>${durationDisplay}</td>
-                                    <td>${request.heureDebut}</td>
-                                    <td>${request.heureFin}</td>
-                                    <td>${request.salle}</td>
-                                    <td><span class="status-badge status-en-rh">En validation RH</span></td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn btn-approve" onclick="rhApprove('${requestId}', '${userId}')"><i class="fas fa-check"></i> Approuver</button>
-                                            <button class="btn btn-reject" onclick="rhReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')"><i class="fas fa-times"></i> Refuser</button>
-                                        </div>
-                                    </td>
-                                `;
-                                body.appendChild(row);
-                            }
-                        });
-                    });
-                }
-                if (pendingCount === 0) {
-                    body.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem;">Aucune demande en validation RH.</td></tr>`;
-                }
-            });
-        }
-
-        // Admin approve request
-        window.adminApprove = async function(requestId, userId) {
-            try {
-                const requestRef = ref(db, `requests/${userId}/${requestId}`);
-                await update(requestRef, {
-                    statut: "en_rh",
-                    workflow: { admin: { approved: true, timestamp: new Date().toISOString() } }
-                });
-                await createNotification(userId, 'approval_admin', {
-                    date: (await get(requestRef)).val().date,
-                    room: (await get(requestRef)).val().salle
-                });
-                await createNotification('bedis.sghair@wkw-group.com', 'rh_pending', {
-                    name: (await get(requestRef)).val().prenom + ' ' + (await get(requestRef)).val().nom,
-                    date: (await get(requestRef)).val().date,
-                    room: (await get(requestRef)).val().salle
-                });
-                alert("Demande approuvée avec succès !");
-            } catch (error) {
-                console.error("Error approving request:", error);
-            }
-        };
-
-        // Admin reject request
-        window.adminReject = async function(requestId, userId, name) {
-            const reason = prompt(`Raison du rejet pour ${name} :`);
-            if (reason) {
-                try {
-                    const requestRef = ref(db, `requests/${userId}/${requestId}`);
-                    await update(requestRef, {
-                        statut: "refuse",
-                        workflow: { admin: { approved: false, commentaire: reason, timestamp: new Date().toISOString() } }
-                    });
-                    await createNotification(userId, 'rejection', {
-                        date: (await get(requestRef)).val().date,
-                        room: (await get(requestRef)).val().salle,
-                        reason: reason
-                    });
-                    alert("Demande rejetée avec succès !");
-                } catch (error) {
-                    console.error("Error rejecting request:", error);
-                }
-            }
-        };
-
-        // RH approve request
-        window.rhApprove = async function(requestId, userId) {
-            try {
-                const requestRef = ref(db, `requests/${userId}/${requestId}`);
-                await update(requestRef, {
-                    statut: "approuve",
-                    workflow: { rh: { approved: true, timestamp: new Date().toISOString() } }
-                });
-                await createNotification(userId, 'approval_rh', {
-                    date: (await get(requestRef)).val().date,
-                    room: (await get(requestRef)).val().salle
-                });
-                alert("Demande approuvée avec succès !");
-            } catch (error) {
-                console.error("Error approving request:", error);
-            }
-        };
-
-        // RH reject request
-        window.rhReject = async function(requestId, userId, name) {
-            const reason = prompt(`Raison du rejet pour ${name} :`);
-            if (reason) {
-                try {
-                    const requestRef = ref(db, `requests/${userId}/${requestId}`);
-                    await update(requestRef, {
-                        statut: "refuse",
-                        workflow: { rh: { approved: false, commentaire: reason, timestamp: new Date().toISOString() } }
-                    });
-                    await createNotification(userId, 'rejection', {
-                        date: (await get(requestRef)).val().date,
-                        room: (await get(requestRef)).val().salle,
-                        reason: reason
-                    });
-                    alert("Demande rejetée avec succès !");
-                } catch (error) {
-                    console.error("Error rejecting request:", error);
-                }
-            }
-        };
-
-        // Export to Excel
-        window.exportToExcel = function(tableId, filename) {
-            const table = document.getElementById(tableId);
-            const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
-            XLSX.writeFile(wb, filename);
-        };
-
-        // Export planning to Excel
-        window.exportPlanningToExcel = function() {
-            exportToExcel('planning-table', 'planning.xlsx');
-        };
-
-        // Check for time overlap
-        async function checkOverlap(date, heureDebut, heureFin, salle, excludeRequestId = null) {
-            const snapshot = await get(ref(db, `requests`));
-            const usersRequests = snapshot.val();
-            if (!usersRequests) return false;
-
-            const startTime = new Date(`${date}T${heureDebut}`);
-            const endTime = new Date(`${date}T${heureFin}`);
-
-            for (const userId in usersRequests) {
-                for (const requestId in usersRequests[userId]) {
-                    if (excludeRequestId && requestId === excludeRequestId) continue;
-                    const request = usersRequests[userId][requestId];
-                    if (request.statut === "approuve" && request.date === date && request.salle === salle) {
-                        const existingStart = new Date(`${request.date}T${request.heureDebut}`);
-                        const existingEnd = new Date(`${request.date}T${request.heureFin}`);
-                        if (!(endTime <= existingStart || startTime >= existingEnd)) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        // Check if user needs to change password
-        async function checkFirstLogin(user) {
+    // Check if user needs to change password
+    async function checkFirstLogin(user) {
+        try {
+            console.log(`Checking first login for UID: ${user.uid}`);
             const userRef = ref(db, `users/${user.uid}`);
             const snapshot = await get(userRef);
             const userData = snapshot.val();
-            return !userData || !userData.passwordChanged;
-        }
-
-        // Mark password as changed
-        async function markPasswordChanged(userId) {
-            try {
-                const userRef = ref(db, `users/${userId}`);
+            if (!userData) {
+                console.log("No user data found, initializing...");
+                const role = user.email === "walid.gharbi@wkw-group.com" ? "admin" :
+                             user.email === "rh@wkw.com" ? "rh" : "demandeur";
                 await set(userRef, {
-                    email: currentUser.email,
-                    role: currentRole,
-                    passwordChanged: true,
+                    email: user.email,
+                    role: role,
+                    passwordChanged: false,
                     lastUpdated: new Date().toISOString()
                 });
-            } catch (error) {
-                console.error("Error marking password as changed:", error);
+                console.log("User data initialized with role:", role);
+                return true;
+            }
+            console.log(`Password changed status: ${userData.passwordChanged}`);
+            return !userData.passwordChanged;
+        } catch (error) {
+            console.error("Error checking first login:", error);
+            return true; // Prompt password change on error
+        }
+    }
+
+    // Mark password as changed
+    async function markPasswordChanged(userId) {
+        try {
+            console.log(`Marking password changed for UID: ${userId}`);
+            const email = currentUser.email;
+            const role = email === "walid.gharbi@wkw-group.com" ? "admin" :
+                         email === "rh@wkw.com" ? "rh" : "demandeur";
+            const userRef = ref(db, `users/${userId}`);
+            await set(userRef, {
+                email: email,
+                role: role,
+                passwordChanged: true,
+                lastUpdated: new Date().toISOString()
+            });
+            console.log(`Password marked as changed, role set to: ${role}`);
+        } catch (error) {
+            console.error("Error marking password as changed:", error);
+            throw error;
+        }
+    }
+
+    // Handle auth state changes
+    onAuthStateChanged(auth, async (user) => {
+        console.log("Auth state changed:", user ? `User logged in: ${user.email}` : "No user logged in");
+        if (user) {
+            currentUser = user;
+            currentRole = await determineRole(user.uid);
+            console.log(`Current role: ${currentRole}`);
+            const isFirstLogin = await checkFirstLogin(user);
+            if (isFirstLogin) {
+                console.log("First login detected, showing password change form");
+                showPasswordChange();
+            } else {
+                console.log("Not first login, showing dashboard");
+                showDashboard();
+                initCalendar();
+            }
+        } else {
+            console.log("Showing login screen");
+            showLogin();
+        }
+    });
+
+    // Show login
+    function showLogin() {
+        console.log("Showing login section");
+        document.getElementById('login-section').style.display = 'flex';
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('login-container').style.display = 'block';
+        document.getElementById('password-change-container').style.display = 'none';
+        currentUser = null;
+        currentRole = null;
+        if (calendarInstance) {
+            calendarInstance.destroy();
+            calendarInstance = null;
+        }
+    }
+
+    // Show password change form
+    function showPasswordChange() {
+        console.log("Showing password change form");
+        document.getElementById('login-section').style.display = 'flex';
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('password-change-container').style.display = 'block';
+        document.getElementById('dashboard').style.display = 'none';
+    }
+
+    // Show dashboard
+    function showDashboard() {
+        console.log("Showing dashboard with role:", currentRole);
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        renderNavbar();
+        renderSections();
+        loadData();
+        loadNotifications();
+    }
+
+    // Handle login form submission
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.style.display = 'none';
+
+        try {
+            console.log(`Attempting login for: ${email}`);
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error("Login error:", error);
+            errorMessage.style.display = 'block';
+            switch (error.code) {
+                case 'auth/wrong-password':
+                    errorMessage.textContent = "Mot de passe incorrect.";
+                    break;
+                case 'auth/user-not-found':
+                    errorMessage.textContent = "Utilisateur non trouvé.";
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage.textContent = "Adresse email invalide.";
+                    break;
+                case 'auth/too-many-requests':
+                    errorMessage.textContent = "Trop de tentatives. Veuillez réessayer plus tard.";
+                    break;
+                default:
+                    errorMessage.textContent = `Erreur : ${error.message}`;
+            }
+        }
+    });
+
+    // Handle password change form submission
+    document.getElementById('password-change-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorMessage = document.getElementById('password-error-message');
+        const successMessage = document.getElementById('password-success-message');
+        const changeButton = document.getElementById('change-password-button');
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+        changeButton.disabled = true;
+        changeButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mise à jour...';
+
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        console.log("Password change form submitted");
+
+        if (newPassword !== confirmPassword) {
+            errorMessage.textContent = "Les nouveaux mots de passe ne correspondent pas.";
+            errorMessage.style.display = 'block';
+            changeButton.disabled = false;
+            changeButton.innerHTML = '<i class="fas fa-save"></i> Mettre à jour le mot de passe';
+            console.log("Password mismatch");
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            errorMessage.textContent = "Le nouveau mot de passe doit contenir au moins 6 caractères.";
+            errorMessage.style.display = 'block';
+            changeButton.disabled = false;
+            changeButton.innerHTML = '<i class="fas fa-save"></i> Mettre à jour le mot de passe';
+            console.log("Password too short");
+            return;
+        }
+
+        try {
+            console.log("Reauthenticating user");
+            const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+            await reauthenticateWithCredential(currentUser, credential);
+            console.log("Updating password");
+            await updatePassword(currentUser, newPassword);
+            console.log("Marking password as changed");
+            await markPasswordChanged(currentUser.uid);
+            console.log("Creating password changed notification");
+            await createNotification(currentUser.uid, 'password_changed', {});
+            successMessage.textContent = "Mot de passe mis à jour avec succès !";
+            successMessage.style.display = 'block';
+            document.getElementById('password-change-form').reset();
+            // Re-evaluate role
+            console.log("Re-evaluating role after password change");
+            currentRole = await determineRole(currentUser.uid);
+            console.log(`Role after password change: ${currentRole}`);
+            setTimeout(() => {
+                showDashboard();
+                initCalendar();
+                changeButton.disabled = false;
+                changeButton.innerHTML = '<i class="fas fa-save"></i> Mettre à jour le mot de passe';
+            }, 2000);
+        } catch (error) {
+            console.error("Error updating password:", error);
+            errorMessage.style.display = 'block';
+            switch (error.code) {
+                case 'auth/wrong-password':
+                    errorMessage.textContent = "Mot de passe actuel incorrect.";
+                    break;
+                case 'auth/too-many-requests':
+                    errorMessage.textContent = "Trop de tentatives. Veuillez réessayer plus tard.";
+                    break;
+                default:
+                    errorMessage.textContent = `Erreur : ${error.message}`;
+            }
+            changeButton.disabled = false;
+            changeButton.innerHTML = '<i class="fas fa-save"></i> Mettre à jour le mot de passe';
+        }
+    });
+
+    // Render navbar based on role
+    function renderNavbar() {
+        console.log("Rendering navbar for role:", currentRole);
+        const menu = document.getElementById('nav-menu');
+        let navHtml = '';
+        navHtml += `<li><a onclick="showSection('notifications')"><i class="fas fa-bell"></i> Notifications<span id="notification-badge" class="notification-badge" style="display: none;"></span></a></li>`;
+        navHtml += `<li><a onclick="showSection('planning')"><i class="fas fa-calendar-alt"></i> Planning Salle de Réunion</a></li>`;
+        if (currentRole === "demandeur") {
+            navHtml += `<li><a onclick="showSection('mes-demandes')"><i class="fas fa-list"></i> Mes Demandes</a></li>
+                        <li><a onclick="showSection('reservation')"><i class="fas fa-plus-circle"></i> Réservation Salle de Réunion</a></li>`;
+        } else {
+            navHtml += `<li><a onclick="showSection('all-demandes-${currentRole}')"><i class="fas fa-${currentRole === 'admin' ? 'users-cog' : 'user-tie'}"></i> Toutes les Demandes (${currentRole === 'admin' ? 'Admin' : 'RH'})</a></li>`;
+        }
+        navHtml += `<li style="margin-left: auto;"><a onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>`;
+        menu.innerHTML = navHtml;
+        updateNotificationBadge();
+    }
+
+    // Toggle navbar on mobile
+    window.toggleNavbar = function() {
+        console.log("Toggling navbar");
+        const menu = document.getElementById('nav-menu');
+        menu.classList.toggle('hidden');
+    };
+
+    // Render sections based on role
+    function renderSections() {
+        console.log("Rendering sections");
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+            section.style.display = 'none';
+        });
+        const notificationsSection = document.getElementById('notifications');
+        notificationsSection.style.display = 'block';
+        notificationsSection.classList.add('active');
+
+        if (currentRole === "demandeur") {
+            document.getElementById('planning').style.display = 'none';
+            document.getElementById('mes-demandes').style.display = 'none';
+            document.getElementById('reservation').style.display = 'none';
+            document.getElementById('all-demandes-admin').style.display = 'none';
+            document.getElementById('all-demandes-rh').style.display = 'none';
+            document.getElementById('export-planning-button').style.display = 'none';
+        } else if (currentRole === "admin") {
+            document.getElementById('planning').style.display = 'none';
+            document.getElementById('mes-demandes').style.display = 'none';
+            document.getElementById('reservation').style.display = 'none';
+            document.getElementById('all-demandes-admin').style.display = 'none';
+            document.getElementById('all-demandes-rh').style.display = 'none';
+            document.getElementById('export-planning-button').style.display = 'none';
+        } else if (currentRole === "rh") {
+            document.getElementById('planning').style.display = 'none';
+            document.getElementById('mes-demandes').style.display = 'none';
+            document.getElementById('reservation').style.display = 'none';
+            document.getElementById('all-demandes-admin').style.display = 'none';
+            document.getElementById('all-demandes-rh').style.display = 'none';
+            document.getElementById('export-planning-button').style.display = 'none';
+        }
+    }
+
+    // Show or hide specific section
+    window.showSection = function(sectionId) {
+        console.log(`Showing section: ${sectionId}`);
+        const menu = document.getElementById('nav-menu');
+        const isMobile = window.innerWidth <= 768;
+        const isMenuOpen = !menu.classList.contains('hidden');
+        const section = document.getElementById(sectionId);
+
+        if (sectionId === currentSection && section.classList.contains('active')) {
+            section.classList.remove('active');
+            section.style.display = 'none';
+            currentSection = null;
+        } else {
+            document.querySelectorAll('.section').forEach(sec => {
+                sec.classList.remove('active');
+                sec.style.display = 'none';
+            });
+            if (section) {
+                section.classList.add('active');
+                section.style.display = 'block';
+                currentSection = sectionId;
             }
         }
 
-        // Handle password change
-        document.getElementById('password-change-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const errorMessage = document.getElementById('password-error-message');
-            const successMessage = document.getElementById('password-success-message');
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
+        if (isMobile && isMenuOpen) {
+            menu.classList.add('hidden');
+        }
 
-            const currentPassword = document.getElementById('current-password').value;
-            const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
-            if (newPassword !== confirmPassword) {
-                errorMessage.textContent = "Les nouveaux mots de passe ne correspondent pas.";
-                errorMessage.style.display = 'block';
-                return;
+    // Toggle between calendar and table views
+    window.toggleView = function(view) {
+        console.log(`Toggling view to: ${view}`);
+        const calendar = document.getElementById('calendar');
+        const table = document.getElementById('planning-table');
+        const exportButton = document.getElementById('export-planning-button');
+        if (view === 'calendar') {
+            calendar.style.display = 'block';
+            table.style.display = 'none';
+            exportButton.style.display = currentRole === 'demandeur' ? 'none' : 'inline-block';
+            if (calendarInstance) {
+                calendarInstance.render();
+                filterCalendarEvents();
             }
+        } else {
+            calendar.style.display = 'none';
+            table.style.display = 'table';
+            exportButton.style.display = currentRole === 'demandeur' ? 'none' : 'inline-block';
+        }
+    };
 
-            if (newPassword.length < 6) {
-                errorMessage.textContent = "Le nouveau mot de passe doit contenir au moins 6 caractères.";
-                errorMessage.style.display = 'block';
-                return;
-            }
-
-            try {
-                const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
-                await reauthenticateWithCredential(currentUser, credential);
-                await updatePassword(currentUser, newPassword);
-                await markPasswordChanged(currentUser.uid);
-                await createNotification(currentUser.uid, 'password_changed', {});
-                successMessage.textContent = "Mot de passe mis à jour avec succès !";
-                successMessage.style.display = 'block';
-                document.getElementById('password-change-form').reset();
-                setTimeout(() => {
-                    showDashboard();
-                    initCalendar();
-                }, 2000);
-            } catch (error) {
-                errorMessage.style.display = 'block';
-                switch (error.code) {
-                    case 'auth/wrong-password':
-                        errorMessage.textContent = "Mot de passe actuel incorrect.";
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage.textContent = "Trop de tentatives. Veuillez réessayer plus tard.";
-                        break;
-                    default:
-                        errorMessage.textContent = `Erreur : ${error.message}`;
-                }
-                console.error("Error updating password:", error);
+    // Initialize FullCalendar
+    function initCalendar() {
+        console.log("Initializing calendar");
+        const calendarEl = document.getElementById('calendar');
+        calendarEl.innerHTML = '<div class="loading-spinner" id="calendar-loading"></div>';
+        calendarInstance = new FullCalendar.Calendar(calendarEl, {
+            initialView: window.innerWidth <= 768 ? 'dayGridDay' : 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,dayGridWeek,dayGridDay'
+            },
+            events: [],
+            eventClick: function(info) {
+                showEventModal(info.event);
+            },
+            eventTimeFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            },
+            height: 'auto',
+            viewDidMount: function() {
+                document.querySelector('.fc').style.opacity = '1';
+            },
+            viewWillUnmount: function() {
+                document.querySelector('.fc').style.opacity = '0';
             }
         });
+        calendarInstance.render();
+        loadCalendarEvents();
+    }
 
-        // Handle login
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.style.display = 'none';
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                currentUser = userCredential.user;
-                currentRole = determineRole(email);
-                const isFirstLogin = await checkFirstLogin(currentUser);
-                if (isFirstLogin) {
-                    showPasswordChange();
+    // Load and filter calendar events
+    function loadCalendarEvents() {
+        console.log("Loading calendar events");
+        const calendarEl = document.getElementById('calendar');
+        const loadingSpinner = document.getElementById('calendar-loading');
+        if (loadingSpinner) {
+            loadingSpinner.style.display = 'block';
+        }
+        const allRequestsRef = ref(db, `requests`);
+        onValue(allRequestsRef, (snapshot) => {
+            const events = [];
+            const usersRequests = snapshot.val();
+            const roomFilter = document.getElementById('room-filter').value;
+            if (usersRequests) {
+                Object.entries(usersRequests).forEach(([userId, userRequests]) => {
+                    Object.entries(userRequests).forEach(([requestId, request]) => {
+                        if (request.statut === "approuve" && request.salle && (roomFilter === 'all' || request.salle === roomFilter)) {
+                            const start = `${request.date}T${request.heureDebut}`;
+                            const end = `${request.date}T${request.heureFin}`;
+                            const durationDisplay = `${request.duree} ${request.dureeUnite}`;
+                            events.push({
+                                id: requestId,
+                                title: currentRole === 'demandeur' ? `Réservé - ${request.salle}` : `${request.prenom} ${request.nom} - ${request.salle}`,
+                                start: start,
+                                end: end,
+                                extendedProps: {
+                                    nom: request.nom || 'N/A',
+                                    prenom: request.prenom || 'N/A',
+                                    service: currentRole === 'demandeur' ? 'N/A' : request.service || 'N/A',
+                                    cause: currentRole === 'demandeur' ? 'N/A' : request.cause || 'N/A',
+                                    duree: currentRole === 'demandeur' ? 'N/A' : durationDisplay,
+                                    heureDebut: request.heureDebut,
+                                    heureFin: request.heureFin,
+                                    salle: request.salle,
+                                    statut: 'Approuvé'
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+            if (calendarInstance) {
+                calendarInstance.getEvents().forEach(event => event.remove());
+                if (events.length === 0) {
+                    calendarEl.innerHTML = `<p style="text-align: center; padding: 2rem;">Aucune réservation approuvée.</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>`;
                 } else {
-                    showDashboard();
-                    initCalendar();
-                }
-            } catch (error) {
-                errorMessage.style.display = 'block';
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                    case 'auth/wrong-password':
-                        errorMessage.textContent = "Email ou mot de passe incorrect.";
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage.textContent = "Adresse email invalide.";
-                        break;
-                    default:
-                        errorMessage.textContent = `Erreur : ${error.message}`;
+                    calendarEl.innerHTML = '<div class="loading-spinner" id="calendar-loading"></div>';
+                    calendarInstance.render();
+                    events.forEach((event, index) => {
+                        setTimeout(() => {
+                            calendarInstance.addEvent(event);
+                        }, index * 100);
+                    });
                 }
             }
-        });
-
-        // Handle reservation form submission
-        document.getElementById('reservation-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const errorMessage = document.getElementById('reservation-error-message');
-            const successMessage = document.getElementById('reservation-success-message');
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
-
-            const date = document.getElementById('date').value;
-            const nom = document.getElementById('nom').value.trim();
-            const prenom = document.getElementById('prenom').value.trim();
-            const service = document.getElementById('service').value.trim();
-            const cause = document.getElementById('cause').value.trim();
-            const dureeUnite = document.getElementById('duree-unite').value;
-              const duree = document.getElementById('duree').value;
-            const heureDebut = document.getElementById('heure-debut').value;
-            const heureFin = document.getElementById('heure-fin').value;
-            const salle = document.getElementById('salle').value;
-
-            if (heureFin <= heureDebut) {
-                errorMessage.textContent = "L'heure de fin doit être postérieure à l'heure de début.";
-                errorMessage.style.display = 'block';
-                return;
-            }
-
-            const overlap = await checkOverlap(date, heureDebut, heureFin, salle);
-            if (overlap) {
-                errorMessage.textContent = "Cette date et heure sont déjà prises pour cette salle. Veuillez changer la date ou l'heure.";
-                errorMessage.style.display = 'block';
-                return;
-            }
-
-            try {
-                const requestsRef = ref(db, `requests/${currentUser.uid}`);
-                const newRequestRef = await push(requestsRef, {
-                    date,
-                    nom,
-                    prenom,
-                    service,
-                    cause,
-                    dureeUnite,
-                    duree: parseInt(duree),
-                    heureDebut,
-                    heureFin,
-                    salle,
-                    statut: "en_attente",
-                    createdAt: new Date().toISOString()
-                });
-
-                await createNotification(currentUser.uid, 'submission', { date, room: salle });
-                await createNotification('walid.gharbi@wkw-group.com', 'admin_pending', {
-                    name: `${prenom} ${nom}`,
-                    date,
-                    room: salle
-                });
-
-                successMessage.textContent = "Demande envoyée avec succès !";
-                successMessage.style.display = 'block';
-                document.getElementById('reservation-form').reset();
+            if (loadingSpinner) {
                 setTimeout(() => {
-                    successMessage.style.display = 'none';
-                }, 3000);
-            } catch (error) {
-                errorMessage.textContent = `Erreur : ${error.message}`;
-                errorMessage.style.display = 'block';
+                    loadingSpinner.style.display = 'none';
+                }, events.length * 100 + 300);
             }
+        }, (error) => {
+            console.error("Error loading calendar events:", error);
+            calendarEl.innerHTML = `<p style="text-align: center; padding: 2rem; color: #991b1b;">Erreur : ${error.message}</p><div class="loading-spinner" id="calendar-loading" style="display: none;"></div>`;
         });
+    }
 
-        // Check auth state
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                currentRole = determineRole(user.email);
-                showDashboard();
-                initCalendar();
+    // Filter calendar events by room
+    window.filterCalendarEvents = function() {
+        console.log("Filtering calendar events");
+        loadCalendarEvents();
+    };
+
+    // Show event details in modal
+    function showEventModal(event) {
+        console.log("Showing event modal");
+        const modalRows = {
+            date: document.getElementById('modal-date-row'),
+            nom: document.getElementById('modal-nom-row'),
+            prenom: document.getElementById('modal-prenom-row'),
+            service: document.getElementById('modal-service-row'),
+            cause: document.getElementById('modal-cause-row'),
+            duree: document.getElementById('modal-duree-row'),
+            heureDebut: document.getElementById('modal-heure-debut-row'),
+            heureFin: document.getElementById('modal-heure-fin-row'),
+            salle: document.getElementById('modal-salle-row'),
+            statut: document.getElementById('modal-statut-row')
+        };
+
+        Object.values(modalRows).forEach(row => row.classList.remove('visible'));
+
+        document.getElementById('modal-date').textContent = event.start ? event.start.toISOString().split('T')[0] : 'N/A';
+        document.getElementById('modal-nom').textContent = event.extendedProps.nom || 'N/A';
+        document.getElementById('modal-prenom').textContent = event.extendedProps.prenom || 'N/A';
+        document.getElementById('modal-service').textContent = event.extendedProps.service || 'N/A';
+        document.getElementById('modal-cause').textContent = event.extendedProps.cause || 'N/A';
+        document.getElementById('modal-duree').textContent = event.extendedProps.duree || 'N/A';
+        document.getElementById('modal-heure-debut').textContent = event.extendedProps.heureDebut || 'N/A';
+        document.getElementById('modal-heure-fin').textContent = event.extendedProps.heureFin || 'N/A';
+        document.getElementById('modal-salle').textContent = event.extendedProps.salle || 'N/A';
+        document.getElementById('modal-statut').textContent = event.extendedProps.statut || 'N/A';
+
+        if (currentRole === 'demandeur') {
+            modalRows.date.classList.add('visible');
+            modalRows.nom.classList.add('visible');
+            modalRows.prenom.classList.add('visible');
+            modalRows.heureDebut.classList.add('visible');
+            modalRows.heureFin.classList.add('visible');
+            modalRows.salle.classList.add('visible');
+        } else {
+            Object.values(modalRows).forEach(row => row.classList.add('visible'));
+        }
+
+        document.getElementById('event-modal').style.display = 'flex';
+    }
+
+    // Close modal
+    window.closeModal = function() {
+        console.log("Closing modal");
+        document.getElementById('event-modal').style.display = 'none';
+    };
+
+    // Load notifications
+    function loadNotifications() {
+        console.log("Loading notifications");
+        const notificationList = document.getElementById('notification-list');
+        const notificationsRef = ref(db, `notifications/${currentUser.uid}`);
+        onValue(notificationsRef, (snapshot) => {
+            notificationList.innerHTML = '';
+            const notifications = snapshot.val();
+            let unreadCount = 0;
+            if (notifications) {
+                Object.entries(notifications).forEach(([notificationId, notification]) => {
+                    if (notification.status === 'unread') unreadCount++;
+                    const notificationItem = document.createElement('div');
+                    notificationItem.className = `notification-item ${notification.status}`;
+                    notificationItem.innerHTML = `
+                        <p>${notification.message} (${new Date(notification.timestamp).toLocaleString('fr-FR')})</p>
+                        <div>
+                            ${notification.status === 'unread' ? `<button onclick="markNotificationRead('${notificationId}')"><i class="fas fa-check"></i> Marquer comme lu</button>` : ''}
+                            <button onclick="deleteNotification('${notificationId}')"><i class="fas fa-trash"></i> Supprimer</button>
+                        </div>
+                    `;
+                    notificationList.appendChild(notificationItem);
+                });
             } else {
-                showLogin();
+                notificationList.innerHTML = `<p style="text-align: center; padding: 1rem;"><i class="fas fa-bell-slash"></i> Aucune notification.</p>`;
+            }
+            updateNotificationBadge(unreadCount);
+        });
+    }
+
+    // Update notification badge
+    function updateNotificationBadge(unreadCount = 0) {
+        console.log(`Updating notification badge: ${unreadCount} unread`);
+        const badge = document.getElementById('notification-badge');
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    // Mark notification as read
+    window.markNotificationRead = async function(notificationId) {
+        try {
+            console.log(`Marking notification ${notificationId} as read`);
+            const notificationRef = ref(db, `notifications/${currentUser.uid}/${notificationId}`);
+            await update(notificationRef, { status: 'read' });
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
+        }
+    };
+
+    // Delete notification
+    window.deleteNotification = async function(notificationId) {
+        try {
+            console.log(`Deleting notification ${notificationId}`);
+            const notificationRef = ref(db, `notifications/${currentUser.uid}/${notificationId}`);
+            await remove(notificationRef);
+        } catch (error) {
+            console.error("Error deleting notification:", error);
+        }
+    };
+
+    // Mark all notifications as read
+    window.markAllNotificationsRead = async function() {
+        try {
+            console.log("Marking all notifications as read");
+            const notificationsRef = ref(db, `notifications/${currentUser.uid}`);
+            const snapshot = await get(notificationsRef);
+            const notifications = snapshot.val();
+            if (notifications) {
+                const updates = {};
+                Object.keys(notifications).forEach(notificationId => {
+                    updates[`${notificationId}/status`] = 'read';
+                });
+                await update(notificationsRef, updates);
+            }
+        } catch (error) {
+            console.error("Error marking all notifications as read:", error);
+        }
+    };
+
+    // Clear all notifications
+    window.clearAllNotifications = async function() {
+        try {
+            console.log("Clearing all notifications");
+            const notificationsRef = ref(db, `notifications/${currentUser.uid}`);
+            await remove(notificationsRef);
+        } catch (error) {
+            console.error("Error clearing notifications:", error);
+        }
+    };
+
+    // Create notification
+    async function createNotification(userIdOrEmail, type, params = {}) {
+        try {
+            console.log(`Creating notification for ${userIdOrEmail}, type: ${type}`);
+            let userId = userIdOrEmail;
+            if (userIdOrEmail.includes('@')) {
+                const usersRef = ref(db, 'users');
+                const snapshot = await get(usersRef);
+                const users = snapshot.val();
+                userId = Object.keys(users).find(uid => users[uid].email === userIdOrEmail);
+                if (!userId) {
+                    console.error(`No user found for email: ${userIdOrEmail}`);
+                    return;
+                }
+            }
+            const notificationsRef = ref(db, `notifications/${userId}`);
+            let message = '';
+            switch (type) {
+                case 'submission':
+                    message = `Votre demande de réservation pour ${params.date} (${params.room}) a été soumise avec succès.`;
+                    break;
+                case 'admin_pending':
+                    message = `Nouvelle demande de réservation par ${params.name} pour ${params.date} (${params.room}).`;
+                    break;
+                case 'approval_admin':
+                    message = `Votre demande pour ${params.date} (${params.room}) a été approuvée par l'admin et est en attente de validation RH.`;
+                    break;
+                case 'rh_pending':
+                    message = `Nouvelle demande en validation RH pour ${params.name} (${params.date}, ${params.room}).`;
+                    break;
+                case 'approval_rh':
+                    message = `Votre demande pour ${params.date} (${params.room}) a été approuvée par RH.`;
+                    break;
+                case 'rejection':
+                    message = `Votre demande pour ${params.date} (${params.room}) a été rejetée. Raison : ${params.reason}`;
+                    break;
+                case 'password_changed':
+                    message = `Votre mot de passe a été mis à jour avec succès.`;
+                    break;
+            }
+            await push(notificationsRef, {
+                message,
+                type,
+                status: 'unread',
+                timestamp: new Date().toISOString()
+            });
+            console.log(`Notification created: ${message}`);
+        } catch (error) {
+            console.error("Error creating notification:", error);
+        }
+    }
+
+    // Notify RH users
+    async function notifyRHUsers(params) {
+        try {
+            console.log("Notifying RH users");
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            const users = snapshot.val();
+            if (users) {
+                for (const [uid, user] of Object.entries(users)) {
+                    if (user.role === 'rh') {
+                        await createNotification(uid, 'rh_pending', params);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error notifying RH users:", error);
+        }
+    }
+
+    // Logout
+    window.logout = async () => {
+        try {
+            console.log("Logging out");
+            await signOut(auth);
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+        showLogin();
+    };
+
+    // Load data based on role
+    function loadData() {
+        console.log("Loading data for role:", currentRole);
+        loadPlanning();
+        if (currentRole === "demandeur") {
+            loadUserRequests();
+        } else if (currentRole === "admin") {
+            loadAdminRequests();
+        } else if (currentRole === "rh") {
+            loadRhRequests();
+        }
+    }
+
+    // Load approved requests for Planning section
+    function loadPlanning() {
+        console.log("Loading planning data");
+        const head = document.getElementById("planning-table-head");
+        const body = document.getElementById("planning-body");
+        if (currentRole === "demandeur") {
+            head.innerHTML = `
+                <tr>
+                    <th>Date</th>
+                    <th>Heure Début</th>
+                    <th>Heure Fin</th>
+                    <th>Salle</th>
+                </tr>
+            `;
+        } else {
+            head.innerHTML = `
+                <tr>
+                    <th>Date</th>
+                    <th>Demandeur</th>
+                    <th>Service</th>
+                    <th>Cause</th>
+                    <th>Durée</th>
+                    <th>Heure Début</th>
+                    <th>Heure Fin</th>
+                    <th>Salle</th>
+                    <th>Statut</th>
+                </tr>
+            `;
+        }
+        const allRequestsRef = ref(db, `requests`);
+        onValue(allRequestsRef, (snapshot) => {
+            body.innerHTML = "";
+            const usersRequests = snapshot.val();
+            let approvedCount = 0;
+            if (usersRequests) {
+                Object.entries(usersRequests).forEach(([userId, userRequests]) => {
+                    Object.entries(userRequests).forEach(([requestId, request]) => {
+                        if (request.statut === "approuve") {
+                            approvedCount++;
+                            const durationDisplay = `${request.duree} ${request.dureeUnite}`;
+                            const row = document.createElement("tr");
+                            if (currentRole === "demandeur") {
+                                row.innerHTML = `
+                                    <td>${request.date}</td>
+                                    <td>${request.heureDebut}</td>
+                                    <td>${request.heureFin}</td>
+                                    <td>${request.salle}</td>
+                                `;
+                            } else {
+                                row.innerHTML = `
+                                    <td>${request.date}</td>
+                                    <td>${request.prenom} ${request.nom}</td>
+                                    <td>${request.service || 'N/A'}</td>
+                                    <td>${request.cause || 'N/A'}</td>
+                                    <td>${durationDisplay}</td>
+                                    <td>${request.heureDebut}</td>
+                                    <td>${request.heureFin}</td>
+                                    <td>${request.salle}</td>
+                                    <td><span class="status-badge status-approuve">Approuvé</span></td>
+                                `;
+                            }
+                            body.appendChild(row);
+                        }
+                    });
+                });
+            }
+            if (approvedCount === 0) {
+                const colspan = currentRole === "demandeur" ? 4 : 9;
+                body.innerHTML = `<tr><td colspan="${colspan}" style="text-align: center; padding: 2rem;">Aucune réservation approuvée.</td></tr>`;
             }
         });
-    </script>
+    }
+
+    // Load user requests for demandeur
+    function loadUserRequests() {
+        console.log("Loading user requests");
+        const userRequestsRef = ref(db, `requests/${currentUser.uid}`);
+        onValue(userRequestsRef, (snapshot) => {
+            const body = document.getElementById("user-requests-body");
+            body.innerHTML = "";
+            const requests = snapshot.val();
+            if (requests) {
+                Object.entries(requests).forEach(([requestId, request]) => {
+                    let statusClass = "status-en-attente";
+                    let statusText = "En attente";
+                    if (request.statut === "en_rh") {
+                        statusClass = "status-en-rh";
+                        statusText = "En validation RH";
+                    } else if (request.statut === "approuve") {
+                        statusClass = "status-approuve";
+                        statusText = "Approuvé";
+                    } else if (request.statut === "refuse") {
+                        statusClass = "status-refuse";
+                        statusText = "Refusé";
+                    }
+                    let commentaireHtml = "";
+                    if (request.workflow && request.workflow.admin && request.workflow.admin.commentaire) {
+                        commentaireHtml = `<div class="commentaire">${request.workflow.admin.commentaire}</div>`;
+                    }
+                    const durationDisplay = `${request.duree} ${request.dureeUnite}`;
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${request.date}</td>
+                        <td>${request.nom}</td>
+                        <td>${request.prenom}</td>
+                        <td>${request.service || 'N/A'}</td>
+                        <td>${request.cause || 'N/A'}</td>
+                        <td>${durationDisplay}</td>
+                        <td>${request.heureDebut}</td>
+                        <td>${request.heureFin}</td>
+                        <td>${request.salle}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${commentaireHtml}</td>
+                    `;
+                    body.appendChild(row);
+                });
+            } else {
+                body.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 2rem;">Aucune demande trouvée.</td></tr>`;
+            }
+        });
+    }
+
+    // Load admin requests
+    function loadAdminRequests() {
+        console.log("Loading admin requests");
+        const allRequestsRef = ref(db, `requests`);
+        onValue(allRequestsRef, (snapshot) => {
+            const body = document.getElementById("admin-requests-body");
+            body.innerHTML = "";
+            const usersRequests = snapshot.val();
+            let pendingCount = 0;
+            if (usersRequests) {
+                Object.entries(usersRequests).forEach(([userId, userRequests]) => {
+                    Object.entries(userRequests).forEach(([requestId, request]) => {
+                        if (request.statut === "en_attente") {
+                            pendingCount++;
+                            const durationDisplay = `${request.duree} ${request.dureeUnite}`;
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${request.date}</td>
+                                <td>${request.prenom} ${request.nom}</td>
+                                <td>${request.service || 'N/A'}</td>
+                                <td>${request.cause || 'N/A'}</td>
+                                <td>${durationDisplay}</td>
+                                <td>${request.heureDebut}</td>
+                                <td>${request.heureFin}</td>
+                                <td>${request.salle}</td>
+                                <td><span class="status-badge status-en-attente">En attente</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-approve" onclick="adminApprove('${requestId}', '${userId}')"><i class="fas fa-check"></i> Approuver</button>
+                                        <button class="btn btn-reject" onclick="adminReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')"><i class="fas fa-times"></i> Refuser</button>
+                                    </div>
+                                </td>
+                            `;
+                            body.appendChild(row);
+                        }
+                    });
+                });
+            }
+            if (pendingCount === 0) {
+                body.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem;">Aucune demande en attente.</td></tr>`;
+            }
+        });
+    }
+
+    // Load RH requests
+    function loadRhRequests() {
+        console.log("Loading RH requests");
+        const allRequestsRef = ref(db, `requests`);
+        onValue(allRequestsRef, (snapshot) => {
+            const body = document.getElementById("rh-requests-body");
+            body.innerHTML = "";
+            const usersRequests = snapshot.val();
+            let pendingCount = 0;
+            if (usersRequests) {
+                Object.entries(usersRequests).forEach(([userId, userRequests]) => {
+                    Object.entries(userRequests).forEach(([requestId, request]) => {
+                        if (request.statut === "en_rh") {
+                            pendingCount++;
+                            const durationDisplay = `${request.duree} ${request.dureeUnite}`;
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${request.date}</td>
+                                <td>${request.prenom} ${request.nom}</td>
+                                <td>${request.service || 'N/A'}</td>
+                                <td>${request.cause || 'N/A'}</td>
+                                <td>${durationDisplay}</td>
+                                <td>${request.heureDebut}</td>
+                                <td>${request.heureFin}</td>
+                                <td>${request.salle}</td>
+                                <td><span class="status-badge status-en-rh">En validation RH</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-approve" onclick="rhApprove('${requestId}', '${userId}')"><i class="fas fa-check"></i> Approuver</button>
+                                        <button class="btn btn-reject" onclick="rhReject('${requestId}', '${userId}', '${request.prenom} ${request.nom}')"><i class="fas fa-times"></i> Refuser</button>
+                                    </div>
+                                </td>
+                            `;
+                            body.appendChild(row);
+                        }
+                    });
+                });
+            }
+            if (pendingCount === 0) {
+                body.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem;">Aucune demande en validation RH.</td></tr>`;
+            }
+        });
+    }
+
+    // Admin approve request
+    window.adminApprove = async function(requestId, userId) {
+        try {
+            console.log(`Admin approving request ${requestId} for user ${userId}`);
+            const requestRef = ref(db, `requests/${userId}/${requestId}`);
+            await update(requestRef, {
+                statut: "en_rh",
+                workflow: { admin: { approved: true, timestamp: new Date().toISOString() } }
+            });
+            await createNotification(userId, 'approval_admin', {
+                date: (await get(requestRef)).val().date,
+                room: (await get(requestRef)).val().salle
+            });
+            await notifyRHUsers({
+                name: (await get(requestRef)).val().prenom + ' ' + (await get(requestRef)).val().nom,
+                date: (await get(requestRef)).val().date,
+                room: (await get(requestRef)).val().salle
+            });
+            alert("Demande approuvée avec succès !");
+        } catch (error) {
+            console.error("Error approving request:", error);
+        }
+    };
+
+    // Admin reject request
+    window.adminReject = async function(requestId, userId, name) {
+        const reason = prompt(`Raison du rejet pour ${name} :`);
+        if (reason) {
+            try {
+                console.log(`Admin rejecting request ${requestId} for user ${userId}`);
+                const requestRef = ref(db, `requests/${userId}/${requestId}`);
+                await update(requestRef, {
+                    statut: "refuse",
+                    workflow: { admin: { approved: false, commentaire: reason, timestamp: new Date().toISOString() } }
+                });
+                await createNotification(userId, 'rejection', {
+                    date: (await get(requestRef)).val().date,
+                    room: (await get(requestRef)).val().salle,
+                    reason: reason
+                });
+                alert("Demande rejetée avec succès !");
+            } catch (error) {
+                console.error("Error rejecting request:", error);
+            }
+        }
+    };
+
+    // RH approve request
+    window.rhApprove = async function(requestId, userId) {
+        try {
+            console.log(`RH approving request ${requestId} for user ${userId}`);
+            const requestRef = ref(db, `requests/${userId}/${requestId}`);
+            await update(requestRef, {
+                statut: "approuve",
+                workflow: { rh: { approved: true, timestamp: new Date().toISOString() } }
+            });
+            await createNotification(userId, 'approval_rh', {
+                date: (await get(requestRef)).val().date,
+                room: (await get(requestRef)).val().salle
+            });
+            alert("Demande approuvée avec succès !");
+        } catch (error) {
+            console.error("Error approving request:", error);
+        }
+    };
+
+    // RH reject request
+    window.rhReject = async function(requestId, userId, name) {
+        const reason = prompt(`Raison du rejet pour ${name} :`);
+        if (reason) {
+            try {
+                console.log(`RH rejecting request ${requestId} for user ${userId}`);
+                const requestRef = ref(db, `requests/${userId}/${requestId}`);
+                await update(requestRef, {
+                    statut: "refuse",
+                    workflow: { rh: { approved: false, commentaire: reason, timestamp: new Date().toISOString() } }
+                });
+                await createNotification(userId, 'rejection', {
+                    date: (await get(requestRef)).val().date,
+                    room: (await get(requestRef)).val().salle,
+                    reason: reason
+                });
+                alert("Demande rejetée avec succès !");
+            } catch (error) {
+                console.error("Error rejecting request:", error);
+            }
+        }
+    };
+
+    // Export to Excel
+    window.exportToExcel = function(tableId, filename) {
+        console.log(`Exporting table ${tableId} to ${filename}`);
+        const table = document.getElementById(tableId);
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+        XLSX.writeFile(wb, filename);
+    };
+
+    // Export planning to Excel
+    window.exportPlanningToExcel = function() {
+        console.log("Exporting planning to Excel");
+        exportToExcel('planning-table', 'planning.xlsx');
+    };
+
+    // Check for time overlap
+    async function checkOverlap(date, heureDebut, heureFin, salle, excludeRequestId = null) {
+        console.log(`Checking overlap for date: ${date}, salle: ${salle}`);
+        const snapshot = await get(ref(db, `requests`));
+        const usersRequests = snapshot.val();
+        if (!usersRequests) return false;
+
+        const startTime = new Date(`${date}T${heureDebut}`);
+        const endTime = new Date(`${date}T${heureFin}`);
+
+        for (const userId in usersRequests) {
+            for (const requestId in usersRequests[userId]) {
+                if (excludeRequestId && requestId === excludeRequestId) continue;
+                const request = usersRequests[userId][requestId];
+                if (request.statut === "approuve" && request.date === date && request.salle === salle) {
+                    const existingStart = new Date(`${request.date}T${request.heureDebut}`);
+                    const existingEnd = new Date(`${request.date}T${request.heureFin}`);
+                    if (!(endTime <= existingStart || startTime >= existingEnd)) {
+                        console.log("Overlap detected");
+                        return true;
+                    }
+                }
+            }
+        }
+        console.log("No overlap detected");
+        return false;
+    }
+
+    // Handle reservation form submission
+    document.getElementById('reservation-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorMessage = document.getElementById('reservation-error-message');
+        const successMessage = document.getElementById('reservation-success-message');
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+
+        const date = document.getElementById('date').value;
+        const nom = document.getElementById('nom').value.trim();
+        const prenom = document.getElementById('prenom').value.trim();
+        const service = document.getElementById('service').value.trim();
+        const cause = document.getElementById('cause').value.trim();
+        const dureeUnite = document.getElementById('duree-unite').value;
+        const duree = parseInt(document.getElementById('duree').value);
+        const heureDebut = document.getElementById('heure-debut').value;
+        const heureFin = document.getElementById('heure-fin').value;
+        const salle = document.getElementById('salle').value;
+
+        console.log("Reservation form submitted:", { date, nom, prenom, service, cause, dureeUnite, duree, heureDebut, heureFin, salle });
+
+        if (!date || !nom || !prenom || !service || !cause || !dureeUnite || !duree || !heureDebut || !heureFin || !salle) {
+            errorMessage.textContent = "Tous les champs sont obligatoires.";
+            errorMessage.style.display = 'block';
+            console.log("Missing required fields");
+            return;
+        }
+
+        if (new Date(`${date}T${heureDebut}`) >= new Date(`${date}T${heureFin}`)) {
+            errorMessage.textContent = "L'heure de fin doit être postérieure à l'heure de début.";
+            errorMessage.style.display = 'block';
+            console.log("Invalid time range");
+            return;
+        }
+
+        if (await checkOverlap(date, heureDebut, heureFin, salle)) {
+            errorMessage.textContent = "Conflit de réservation : cette salle est déjà réservée pour cette période.";
+            errorMessage.style.display = 'block';
+            console.log("Reservation conflict detected");
+            return;
+        }
+
+        try {
+            const requestsRef = ref(db, `requests/${currentUser.uid}`);
+            const newRequestRef = push(requestsRef);
+            await set(newRequestRef, {
+                date,
+                nom,
+                prenom,
+                service,
+                cause,
+                duree,
+                dureeUnite,
+                heureDebut,
+                heureFin,
+                salle,
+                statut: "en_attente",
+                createdAt: new Date().toISOString()
+            });
+            await createNotification(currentUser.uid, 'submission', { date, room: salle });
+            await createNotification('walid.gharbi@wkw-group.com', 'admin_pending', {
+                name: `${prenom} ${nom}`,
+                date,
+                room: salle
+            });
+            successMessage.textContent = "Demande de réservation soumise avec succès !";
+            successMessage.style.display = 'block';
+            document.getElementById('reservation-form').reset();
+            console.log("Reservation submitted successfully");
+        } catch (error) {
+            console.error("Error submitting reservation:", error);
+            errorMessage.textContent = `Erreur : ${error.message}`;
+            errorMessage.style.display = 'block';
+        }
+    });
+</script>
 </body>
 </html>
